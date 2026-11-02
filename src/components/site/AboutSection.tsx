@@ -87,16 +87,14 @@ export function AboutSection({ embedded = false }: { embedded?: boolean }) {
               software with React, Node.js, Express, TypeScript, and MongoDB.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              {["React.js", "Node.js", "MongoDB", "TypeScript"].map(
-                (badge) => (
-                  <span
-                    key={badge}
-                    className="rounded-full border border-glass-border bg-glass px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary transition-all duration-300 hover:border-primary hover:shadow-[var(--shadow-glow)]"
-                  >
-                    <ScrambleText text={badge} />
-                  </span>
-                ),
-              )}
+              {["React.js", "Node.js", "MongoDB", "TypeScript"].map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-glass-border bg-glass px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary transition-all duration-300 hover:border-primary hover:shadow-[var(--shadow-glow)]"
+                >
+                  <ScrambleText text={badge} />
+                </span>
+              ))}
             </div>
           </div>
 

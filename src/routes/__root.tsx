@@ -76,7 +76,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { title: "Shubham Vaishnav | Full-Stack Developer & UI Motion Designer" },
+        {
+          title: "Shubham Vaishnav | Full-Stack Developer & UI Motion Designer",
+        },
         {
           name: "description",
           content:

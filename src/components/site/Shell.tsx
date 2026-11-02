@@ -591,7 +591,10 @@ function Footer() {
           <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wider">
             {[
               { name: "GitHub", href: "https://github.com/shubham734013" },
-              { name: "LinkedIn", href: "https://www.linkedin.com/in/shubham-vaishnav-380970313?utm_source=share_via&utm_content=profile&utm_medium=member_android" },
+              {
+                name: "LinkedIn",
+                href: "https://www.linkedin.com/in/shubham-vaishnav-380970313?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+              },
               { name: "Email", href: "mailto:shubhamvaishnav640@gmail.com" },
             ].map((s) => (
               <Magnetic key={s.name}>

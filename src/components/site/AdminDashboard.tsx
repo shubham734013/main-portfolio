@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { usePortfolioData } from "@/lib/portfolio-store";
 import { ScrambleText } from "@/components/site/TextEffects";
 import { Button } from "@/components/ui/button";
+import {
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  LogOut,
+  ArrowLeft,
+  ShieldCheck,
+} from "lucide-react";
 
 type Tab =
   | "certificates"
@@ -12,7 +21,148 @@ type Tab =
   | "articles"
   | "backup";
 
+function getMasterPassword(): string {
+  if (typeof window !== "undefined") {
+    const custom = window.localStorage.getItem("portfolio_admin_custom_key");
+    if (custom && custom.trim()) return custom.trim();
+  }
+  return import.meta.env.VITE_ADMIN_PASSWORD || "shubham2026";
+}
+
+function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
+  const [passcode, setPasscode] = useState("");
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Auto-login if ?key=... URL parameter matches master password
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const keyParam = params.get("key");
+    if (keyParam && keyParam === getMasterPassword()) {
+      sessionStorage.setItem("admin_auth_token", "authenticated");
+      // Clean query parameter from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      onUnlock();
+    }
+  }, [onUnlock]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const correctPassword = getMasterPassword();
+
+    if (passcode.trim() === correctPassword) {
+      sessionStorage.setItem("admin_auth_token", "authenticated");
+      onUnlock();
+    } else {
+      setError(true);
+      setErrorMessage("Incorrect passcode. Access denied.");
+      setTimeout(() => setError(false), 2500);
+    }
+  };
+
+  return (
+    <div className="relative flex min-h-screen items-center justify-center px-4 pt-20 pb-12">
+      {/* Background glow & mesh */}
+      <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center">
+        <div className="h-[420px] w-[420px] rounded-full bg-primary/10 blur-[130px]" />
+      </div>
+
+      <div className="glass w-full max-w-md rounded-3xl border border-glass-border p-8 sm:p-10 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-500">
+        {/* Lock header */}
+        <div className="flex flex-col items-center text-center">
+          <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/25 text-primary shadow-[0_0_35px_rgba(var(--primary-rgb),0.25)]">
+            <Lock className="h-8 w-8" />
+          </div>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-glass-border bg-glass-surface/40 px-3.5 py-1 font-mono text-[11px] uppercase tracking-widest text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Restricted Studio Access
+          </div>
+
+          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Admin <span className="text-liquid">Authentication</span>
+          </h2>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            This control room is restricted to the portfolio owner. Enter your
+            secure master key to manage certificates, work, and articles.
+          </p>
+        </div>
+
+        {/* Password Form */}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <div className="space-y-1.5">
+            <label className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+              Master Passcode
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={passcode}
+                onChange={(e) => {
+                  setPasscode(e.target.value);
+                  if (error) setError(false);
+                }}
+                placeholder="Enter admin key..."
+                autoFocus
+                className={`glass w-full rounded-xl border bg-background/60 py-3 pl-4 pr-11 font-mono text-sm tracking-widest text-foreground outline-none transition-all duration-300 placeholder:text-muted-foreground/40 placeholder:tracking-normal focus:ring-2 focus:ring-primary/40 ${
+                  error
+                    ? "border-destructive/80 ring-2 ring-destructive/40"
+                    : "border-glass-border focus:border-primary"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {error && (
+              <p className="pt-1 text-xs font-medium text-destructive">
+                {errorMessage}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
+          >
+            <KeyRound className="h-4 w-4 transition-transform group-hover:rotate-12" />
+            <span>Unlock Admin Studio</span>
+          </button>
+        </form>
+
+        <div className="mt-6 flex items-center justify-between border-t border-glass-border/60 pt-4 text-xs text-muted-foreground">
+          <Link
+            to="/"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Return to Portfolio</span>
+          </Link>
+          <span className="font-mono text-[10px] text-muted-foreground/60">
+            Protected Route
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AdminDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem("admin_auth_token") === "authenticated";
+  });
   const {
     projects,
     addProject,
@@ -39,10 +189,47 @@ export function AdminDashboard() {
   const [importText, setImportText] = useState("");
   const [showExportModal, setShowExportModal] = useState(false);
   const [copiedExport, setCopiedExport] = useState(false);
+  const [newKeyInput, setNewKeyInput] = useState("");
+  const [activeMasterKey, setActiveMasterKey] = useState(getMasterPassword());
+  const [copiedUrlKey, setCopiedUrlKey] = useState(false);
 
   const showNotification = (msg: string) => {
     setStatusMessage(msg);
     setTimeout(() => setStatusMessage(null), 3500);
+  };
+
+  const handleUpdatePasscode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKeyInput.trim()) return;
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "portfolio_admin_custom_key",
+        newKeyInput.trim(),
+      );
+      setActiveMasterKey(newKeyInput.trim());
+      setNewKeyInput("");
+      showNotification("✦ Admin master key updated successfully!");
+    }
+  };
+
+  const handleResetPasscode = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("portfolio_admin_custom_key");
+      setActiveMasterKey(getMasterPassword());
+      showNotification(
+        "✦ Reset passcode back to default / Vercel environment variable.",
+      );
+    }
+  };
+
+  const handleCopyDirectLink = () => {
+    if (typeof window !== "undefined") {
+      const directUrl = `${window.location.origin}/admin?key=${encodeURIComponent(activeMasterKey)}`;
+      navigator.clipboard.writeText(directUrl);
+      setCopiedUrlKey(true);
+      setTimeout(() => setCopiedUrlKey(false), 2500);
+      showNotification("✦ 1-Click secret admin link copied to clipboard!");
+    }
   };
 
   // 1. Certificate Form State
@@ -266,6 +453,10 @@ export function AdminDashboard() {
     }
   };
 
+  if (!isAuthenticated) {
+    return <AdminLockScreen onUnlock={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-h-screen px-4 pb-24 pt-28 sm:px-8 md:px-16">
       {/* Top Banner Navigation */}
@@ -297,6 +488,17 @@ export function AdminDashboard() {
             className="glass rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-primary hover:border-primary"
           >
             Backup & Export
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              sessionStorage.removeItem("admin_auth_token");
+              setIsAuthenticated(false);
+            }}
+            className="glass flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-destructive hover:bg-destructive/15 hover:border-destructive transition-all duration-300"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Lock</span>
           </Button>
         </div>
       </div>
@@ -1287,6 +1489,113 @@ export function AdminDashboard() {
       {/* TAB 6: BACKUP & DATA SYNC */}
       {activeTab === "backup" && (
         <div className="mt-8 max-w-4xl space-y-8">
+          {/* Security & Access Management Card */}
+          <div className="glass rounded-3xl p-6 sm:p-8 border border-primary/20 bg-primary/[0.02]">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+                Studio Security & Route Protection
+              </span>
+            </div>
+            <h2 className="mt-2 font-display text-2xl font-bold">
+              Admin Passcode & Direct Access
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              Your admin route (
+              <code className="rounded bg-black/40 px-2 py-0.5 font-mono text-xs text-primary">
+                /admin
+              </code>
+              ) is protected by a master passcode. Visitors who visit this URL
+              cannot view or modify your data without entering the correct key.
+            </p>
+
+            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Direct Access Link Box */}
+              <div className="glass rounded-2xl p-5 border border-glass-border">
+                <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                  Your 1-Click Secret Access URL
+                </span>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Bookmark this link in your browser to skip typing the
+                  password:
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={
+                      typeof window !== "undefined"
+                        ? `${window.location.origin}/admin?key=${activeMasterKey}`
+                        : `/admin?key=${activeMasterKey}`
+                    }
+                    className="glass flex-1 rounded-xl bg-black/40 px-3 py-2 font-mono text-xs text-primary outline-none"
+                  />
+                  <Button
+                    onClick={handleCopyDirectLink}
+                    className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground"
+                  >
+                    {copiedUrlKey ? "✓ Copied" : "Copy"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Change Passcode Box */}
+              <div className="glass rounded-2xl p-5 border border-glass-border">
+                <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                  Change Master Key (Device Local)
+                </span>
+                <form
+                  onSubmit={handleUpdatePasscode}
+                  className="mt-3 flex items-center gap-2"
+                >
+                  <input
+                    type="password"
+                    placeholder="New custom key..."
+                    value={newKeyInput}
+                    onChange={(e) => setNewKeyInput(e.target.value)}
+                    className="glass flex-1 rounded-xl bg-black/40 px-3 py-2 font-mono text-xs text-foreground outline-none border border-glass-border focus:border-primary"
+                  />
+                  <Button
+                    type="submit"
+                    className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground"
+                  >
+                    Save
+                  </Button>
+                </form>
+                <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>
+                    Current Key:{" "}
+                    <strong className="font-mono text-primary">••••••</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetPasscode}
+                    className="text-muted-foreground hover:text-destructive underline transition-colors"
+                  >
+                    Reset to Default
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-glass-border/70 bg-black/30 p-4">
+              <span className="font-mono text-xs font-semibold text-primary uppercase tracking-wider">
+                💡 100% Free Vercel Custom Passcode:
+              </span>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                In your Vercel Dashboard, go to{" "}
+                <strong>
+                  Project &gt; Settings &gt; Environment Variables
+                </strong>
+                , add key{" "}
+                <code className="rounded bg-black/60 px-1.5 py-0.5 font-mono text-primary">
+                  VITE_ADMIN_PASSWORD
+                </code>{" "}
+                with your secret password, and click Redeploy. It works on the
+                free Vercel Hobby tier without paying for Pro!
+              </p>
+            </div>
+          </div>
+
           <div className="glass rounded-3xl p-6 sm:p-8">
             <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
               Data Management

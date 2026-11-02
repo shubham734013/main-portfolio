@@ -100,18 +100,22 @@ function CharacterFadeText({ text }: { text: string }) {
   const animateWord = (word: HTMLSpanElement) => {
     const characters = word.querySelectorAll<HTMLElement>(".word-character");
     gsap.killTweensOf(characters);
-    gsap.fromTo(characters, {
-      opacity: 0.35,
-      y: 8,
-      color: "var(--foreground)",
-    }, {
-      opacity: 1,
-      y: 0,
-      color: "var(--primary)",
-      duration: 0.35,
-      ease: "power2.out",
-      stagger: 0.025,
-    });
+    gsap.fromTo(
+      characters,
+      {
+        opacity: 0.35,
+        y: 8,
+        color: "var(--foreground)",
+      },
+      {
+        opacity: 1,
+        y: 0,
+        color: "var(--primary)",
+        duration: 0.35,
+        ease: "power2.out",
+        stagger: 0.025,
+      },
+    );
   };
 
   const resetWord = (word: HTMLSpanElement) => {
@@ -208,15 +212,9 @@ function Home() {
           </GlowingBadge>
         </div>
 
-        <h1
-          className="hero-name-mask relative w-full max-w-5xl font-display text-[clamp(2.75rem,14vw,7.5rem)] font-extrabold leading-[0.88] tracking-[-0.055em] sm:text-[clamp(3.25rem,9vw,7.5rem)]"
-        >
-          <span className="block origin-bottom text-liquid">
-            Shubham
-          </span>
-          <span className="block origin-bottom text-liquid">
-            Vaishnav
-          </span>
+        <h1 className="hero-name-mask relative w-full max-w-5xl font-display text-[clamp(2.75rem,14vw,7.5rem)] font-extrabold leading-[0.88] tracking-[-0.055em] sm:text-[clamp(3.25rem,9vw,7.5rem)]">
+          <span className="block origin-bottom text-liquid">Shubham</span>
+          <span className="block origin-bottom text-liquid">Vaishnav</span>
         </h1>
         <div className="hero-return-reveal hero-role-list mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary md:text-base">
           <span>Full-Stack Developer</span>
@@ -264,7 +262,6 @@ function Home() {
             </Link>
           </Magnetic>
         </div>
-
       </section>
 
       {/* Marquee Skills Banner */}
@@ -291,10 +288,22 @@ function Home() {
       {/* Key Metric Highlights */}
       <section className="grid grid-cols-1 gap-4 px-6 py-12 min-[390px]:grid-cols-2 sm:gap-6 md:px-16 lg:grid-cols-4">
         {[
-          ["4+", "Core disciplines", "AI, ML, full-stack development, and cloud technologies"],
-          ["5+", "Projects built", "Healthcare, SaaS, and frontend experiences"],
+          [
+            "4+",
+            "Core disciplines",
+            "AI, ML, full-stack development, and cloud technologies",
+          ],
+          [
+            "5+",
+            "Projects built",
+            "Healthcare, SaaS, and frontend experiences",
+          ],
           ["3", "Credentials", "Google Cloud, Xebia, and Adobe"],
-          ["2028", "Graduation year", "B.Tech AI & ML student at JECRC University"],
+          [
+            "2028",
+            "Graduation year",
+            "B.Tech AI & ML student at JECRC University",
+          ],
         ].map(([n, l, desc]) => (
           <div
             key={l}
@@ -305,7 +314,9 @@ function Home() {
             <div className="mt-3 text-xs font-semibold uppercase leading-snug tracking-wider text-foreground sm:text-sm">
               {l}
             </div>
-            <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{desc}</div>
+            <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {desc}
+            </div>
           </div>
         ))}
       </section>

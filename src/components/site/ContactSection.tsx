@@ -209,15 +209,23 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                   <Magnetic key={s.name} className="w-full">
                     <a
                       href={s.url}
-                      target={s.url.startsWith("mailto:") ? undefined : "_blank"}
-                      rel={s.url.startsWith("mailto:") ? undefined : "noopener noreferrer"}
+                      target={
+                        s.url.startsWith("mailto:") ? undefined : "_blank"
+                      }
+                      rel={
+                        s.url.startsWith("mailto:")
+                          ? undefined
+                          : "noopener noreferrer"
+                      }
                       className="glass group flex flex-col rounded-2xl p-4 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1"
                     >
                       <span className="mb-3 flex size-10 items-center justify-center rounded-xl border border-glass-border bg-white/5 text-primary transition-transform duration-300 group-hover:scale-105">
                         {(() => {
                           const SocialIcon =
                             socialIcons[s.name as keyof typeof socialIcons];
-                          return <SocialIcon aria-hidden="true" className="size-5" />;
+                          return (
+                            <SocialIcon aria-hidden="true" className="size-5" />
+                          );
                         })()}
                       </span>
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary">
