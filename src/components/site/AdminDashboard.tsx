@@ -1,0 +1,1412 @@
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { usePortfolioData } from "@/lib/portfolio-store";
+import { ScrambleText } from "@/components/site/TextEffects";
+import { Button } from "@/components/ui/button";
+
+type Tab =
+  | "certificates"
+  | "timeline"
+  | "projects"
+  | "experiences"
+  | "articles"
+  | "backup";
+
+export function AdminDashboard() {
+  const {
+    projects,
+    addProject,
+    deleteProject,
+    certificates,
+    addCertificate,
+    deleteCertificate,
+    experiences,
+    addExperience,
+    deleteExperience,
+    articles,
+    addArticle,
+    deleteArticle,
+    timeline,
+    addTimelineStep,
+    deleteTimelineStep,
+    resetToDefaults,
+    exportAllData,
+    importAllData,
+  } = usePortfolioData();
+
+  const [activeTab, setActiveTab] = useState<Tab>("certificates");
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [importText, setImportText] = useState("");
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [copiedExport, setCopiedExport] = useState(false);
+
+  const showNotification = (msg: string) => {
+    setStatusMessage(msg);
+    setTimeout(() => setStatusMessage(null), 3500);
+  };
+
+  // 1. Certificate Form State
+  const [certForm, setCertForm] = useState({
+    title: "",
+    issuer: "",
+    date: new Date().getFullYear().toString(),
+    id: `CRT-${Math.floor(1000 + Math.random() * 9000)}`,
+    skills: "",
+  });
+
+  const handleCreateCertificate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!certForm.title.trim() || !certForm.issuer.trim()) return;
+
+    addCertificate({
+      title: certForm.title.trim(),
+      issuer: certForm.issuer.trim(),
+      date: certForm.date.trim(),
+      id: certForm.id.trim() || `CRT-${Date.now().toString().slice(-4)}`,
+      skills: certForm.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    });
+
+    setCertForm({
+      title: "",
+      issuer: "",
+      date: new Date().getFullYear().toString(),
+      id: `CRT-${Math.floor(1000 + Math.random() * 9000)}`,
+      skills: "",
+    });
+    showNotification("✦ Certificate successfully added to portfolio!");
+  };
+
+  // 2. Journey Step Form State
+  const [journeyForm, setJourneyForm] = useState({
+    year: (new Date().getFullYear() + 1).toString(),
+    title: "",
+    text: "",
+  });
+
+  const handleCreateJourneyStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !journeyForm.year.trim() ||
+      !journeyForm.title.trim() ||
+      !journeyForm.text.trim()
+    )
+      return;
+
+    addTimelineStep({
+      year: journeyForm.year.trim(),
+      title: journeyForm.title.trim(),
+      text: journeyForm.text.trim(),
+    });
+
+    setJourneyForm({
+      year: (new Date().getFullYear() + 1).toString(),
+      title: "",
+      text: "",
+    });
+    showNotification("✦ New Journey Milestone added to About section!");
+  };
+
+  // 3. Project Form State
+  const [projectForm, setProjectForm] = useState({
+    title: "",
+    tag: "",
+    year: new Date().getFullYear().toString(),
+    desc: "",
+    metrics: "",
+    link: "https://github.com",
+  });
+
+  const handleCreateProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !projectForm.title.trim() ||
+      !projectForm.tag.trim() ||
+      !projectForm.desc.trim()
+    )
+      return;
+
+    addProject({
+      title: projectForm.title.trim(),
+      tag: projectForm.tag.trim(),
+      year: projectForm.year.trim(),
+      desc: projectForm.desc.trim(),
+      metrics: projectForm.metrics.trim() || "Interactive · 60 FPS · Modern UI",
+      link: projectForm.link.trim() || "https://github.com",
+    });
+
+    setProjectForm({
+      title: "",
+      tag: "",
+      year: new Date().getFullYear().toString(),
+      desc: "",
+      metrics: "",
+      link: "https://github.com",
+    });
+    showNotification("✦ Selected Work project added to portfolio gallery!");
+  };
+
+  // 4. Experience Form State
+  const [expForm, setExpForm] = useState({
+    role: "",
+    company: "",
+    period: `${new Date().getFullYear()} — Present`,
+    location: "Remote / Hybrid",
+    description: "",
+    highlights: "",
+    tech: "",
+  });
+
+  const handleCreateExperience = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !expForm.role.trim() ||
+      !expForm.company.trim() ||
+      !expForm.description.trim()
+    )
+      return;
+
+    addExperience({
+      role: expForm.role.trim(),
+      company: expForm.company.trim(),
+      period: expForm.period.trim(),
+      location: expForm.location.trim() || "Remote",
+      description: expForm.description.trim(),
+      highlights: expForm.highlights
+        .split("\n")
+        .map((h) => h.trim())
+        .filter(Boolean),
+      tech: expForm.tech
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+    });
+
+    setExpForm({
+      role: "",
+      company: "",
+      period: `${new Date().getFullYear()} — Present`,
+      location: "Remote / Hybrid",
+      description: "",
+      highlights: "",
+      tech: "",
+    });
+    showNotification(
+      "✦ Career Experience craft role added to experience timeline!",
+    );
+  };
+
+  // 5. Article Form State
+  const [artForm, setArtForm] = useState({
+    title: "",
+    slug: "",
+    category: "Motion & GSAP",
+    readTime: "5 min read",
+    date: "November 2026",
+    excerpt: "",
+    content: "",
+  });
+
+  const handleCreateArticle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !artForm.title.trim() ||
+      !artForm.excerpt.trim() ||
+      !artForm.content.trim()
+    )
+      return;
+
+    const slug =
+      artForm.slug.trim() ||
+      artForm.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+
+    addArticle({
+      title: artForm.title.trim(),
+      slug,
+      category: artForm.category.trim() || "Creative Engineering",
+      readTime: artForm.readTime.trim() || "5 min read",
+      date: artForm.date.trim() || "2026",
+      excerpt: artForm.excerpt.trim(),
+      content: artForm.content.trim(),
+    });
+
+    setArtForm({
+      title: "",
+      slug: "",
+      category: "Motion & GSAP",
+      readTime: "5 min read",
+      date: "November 2026",
+      excerpt: "",
+      content: "",
+    });
+    showNotification("✦ New Article published to Writing section!");
+  };
+
+  const handleExportCopy = () => {
+    const data = exportAllData();
+    navigator.clipboard.writeText(data);
+    setCopiedExport(true);
+    setTimeout(() => setCopiedExport(false), 2500);
+  };
+
+  const handleImportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importText.trim()) return;
+    const res = importAllData(importText.trim());
+    if (res.success) {
+      setImportText("");
+      showNotification("✦ Portfolio data successfully restored from backup!");
+    } else {
+      showNotification(`❌ Error restoring data: ${res.error}`);
+    }
+  };
+
+  return (
+    <div className="min-h-screen px-4 pb-24 pt-28 sm:px-8 md:px-16">
+      {/* Top Banner Navigation */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-glass-border pb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-emerald-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-300 animate-ping" />
+            </span>
+            <span className="font-mono text-xs uppercase tracking-widest text-primary">
+              Portfolio Studio Command
+            </span>
+          </div>
+          <h1 className="mt-2 font-display text-3xl font-extrabold sm:text-4xl md:text-5xl text-foreground">
+            Admin <span className="text-liquid">Dashboard</span>
+          </h1>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/"
+            className="glass flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-foreground hover:border-primary hover:text-primary transition-all duration-300"
+          >
+            <span>View Live Portfolio ↗</span>
+          </Link>
+          <Button
+            variant="ghost"
+            onClick={() => setShowExportModal(true)}
+            className="glass rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-primary hover:border-primary"
+          >
+            Backup & Export
+          </Button>
+        </div>
+      </div>
+
+      {/* Status Notification Toast */}
+      {statusMessage && (
+        <div className="fixed bottom-6 right-6 z-[99] flex items-center gap-3 rounded-2xl border border-primary/40 bg-background/95 px-5 py-3 text-sm font-medium text-foreground shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4">
+          <span className="text-primary font-bold">✦</span>
+          <span>{statusMessage}</span>
+        </div>
+      )}
+
+      {/* Metrics Bar */}
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {[
+          {
+            label: "Certificates",
+            count: certificates.length,
+            tab: "certificates" as Tab,
+            icon: "📜",
+          },
+          {
+            label: "Journey Steps",
+            count: timeline.length,
+            tab: "timeline" as Tab,
+            icon: "⏳",
+          },
+          {
+            label: "Selected Work",
+            count: projects.length,
+            tab: "projects" as Tab,
+            icon: "🚀",
+          },
+          {
+            label: "Experience Roles",
+            count: experiences.length,
+            tab: "experiences" as Tab,
+            icon: "💼",
+          },
+          {
+            label: "Articles",
+            count: articles.length,
+            tab: "articles" as Tab,
+            icon: "✍️",
+          },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            onClick={() => setActiveTab(stat.tab)}
+            className={`glass group cursor-pointer rounded-2xl p-4 transition-all duration-300 hover:border-primary/60 ${
+              activeTab === stat.tab
+                ? "border-primary bg-primary/10 shadow-[var(--shadow-glow)]"
+                : ""
+            }`}
+          >
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-xs uppercase tracking-wider">
+                {stat.label}
+              </span>
+              <span>{stat.icon}</span>
+            </div>
+            <div className="mt-2 font-display text-3xl font-extrabold text-foreground group-hover:text-primary transition-colors">
+              {stat.count}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="mt-10 flex flex-wrap gap-2 border-b border-glass-border pb-4 overflow-x-auto no-scrollbar">
+        {[
+          { id: "certificates" as Tab, label: "Certificate Cards", icon: "📜" },
+          { id: "timeline" as Tab, label: "Next Journey Step", icon: "⏳" },
+          { id: "projects" as Tab, label: "Selected Work", icon: "🚀" },
+          { id: "experiences" as Tab, label: "Experience Craft", icon: "💼" },
+          { id: "articles" as Tab, label: "New Articles", icon: "✍️" },
+          { id: "backup" as Tab, label: "Backup & Sync", icon: "⚙️" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
+              activeTab === t.id
+                ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow)]"
+                : "glass text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>{t.icon}</span>
+            <span>{t.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* TAB 1: CERTIFICATES */}
+      {activeTab === "certificates" && (
+        <div className="mt-8 grid gap-8 lg:grid-cols-12">
+          {/* Add Certificate Form */}
+          <div className="lg:col-span-5">
+            <div className="glass rounded-3xl p-6 sm:p-8">
+              <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+                New Credential
+              </span>
+              <h2 className="mt-1 font-display text-2xl font-bold">
+                Add Certificate Card
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Add a new verified certificate or achievement to your credential
+                vault.
+              </p>
+
+              <form
+                onSubmit={handleCreateCertificate}
+                className="mt-6 space-y-4"
+              >
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Certificate Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. AWS Certified Solutions Architect"
+                    value={certForm.title}
+                    onChange={(e) =>
+                      setCertForm({ ...certForm, title: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Issuer / Org *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Amazon Web Services"
+                      value={certForm.issuer}
+                      onChange={(e) =>
+                        setCertForm({ ...certForm, issuer: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Issue Year / Date
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2026"
+                      value={certForm.date}
+                      onChange={(e) =>
+                        setCertForm({ ...certForm, date: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Credential ID / Code
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. AWS-SAA-9011"
+                    value={certForm.id}
+                    onChange={(e) =>
+                      setCertForm({ ...certForm, id: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Skills (Comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Serverless, DynamoDB, VPC, Security"
+                    value={certForm.skills}
+                    onChange={(e) =>
+                      setCertForm({ ...certForm, skills: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  + Add Certificate to Vault
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Certificate Cards List */}
+          <div className="space-y-4 lg:col-span-7">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold">
+                Current Certificates ({certificates.length})
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                Live in portfolio
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {certificates.map((c) => (
+                <div
+                  key={c.id}
+                  className="glass group flex items-start justify-between rounded-2xl p-5 transition-colors duration-300 hover:border-primary/50"
+                >
+                  <div className="min-w-0 pr-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary font-bold">✦</span>
+                      <h4 className="font-display text-lg font-bold text-foreground truncate">
+                        <ScrambleText text={c.title} />
+                      </h4>
+                    </div>
+                    <p className="mt-1 text-xs text-primary font-medium">
+                      {c.issuer} · {c.date} ·{" "}
+                      <span className="font-mono text-muted-foreground">
+                        {c.id}
+                      </span>
+                    </p>
+
+                    {c.skills && c.skills.length > 0 && (
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {c.skills.map((s) => (
+                          <span
+                            key={s}
+                            className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-mono text-primary"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove certificate "${c.title}"?`)) {
+                        deleteCertificate(c.id);
+                        showNotification(`Removed "${c.title}"`);
+                      }
+                    }}
+                    className="glass flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                    title="Delete certificate"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: JOURNEY TIMELINE STEP */}
+      {activeTab === "timeline" && (
+        <div className="mt-8 grid gap-8 lg:grid-cols-12">
+          {/* Add Journey Step Form */}
+          <div className="lg:col-span-5">
+            <div className="glass rounded-3xl p-6 sm:p-8">
+              <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+                Story Milestones
+              </span>
+              <h2 className="mt-1 font-display text-2xl font-bold">
+                Add Next Journey Step
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Append future or past career milestones to the interactive
+                Journey timeline in About.
+              </p>
+
+              <form
+                onSubmit={handleCreateJourneyStep}
+                className="mt-6 space-y-4"
+              >
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Milestone Year *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2027"
+                    value={journeyForm.year}
+                    onChange={(e) =>
+                      setJourneyForm({ ...journeyForm, year: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Milestone Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Spatial Computing & WebGL Studio"
+                    value={journeyForm.title}
+                    onChange={(e) =>
+                      setJourneyForm({ ...journeyForm, title: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Story / Details *
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="e.g. Expanding creative engineering into autonomous interfaces and real-time generative art."
+                    value={journeyForm.text}
+                    onChange={(e) =>
+                      setJourneyForm({ ...journeyForm, text: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none resize-none"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  + Add Step to Journey
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Journey Steps List */}
+          <div className="space-y-4 lg:col-span-7">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold">
+                Current Journey Steps ({timeline.length})
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                Live in About section
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {timeline.map((step) => (
+                <div
+                  key={`${step.year}-${step.title}`}
+                  className="glass group flex items-start justify-between rounded-2xl p-5 transition-colors duration-300 hover:border-primary/50"
+                >
+                  <div className="min-w-0 pr-4">
+                    <div className="flex items-center gap-3">
+                      <span className="font-display text-2xl font-extrabold text-liquid">
+                        {step.year}
+                      </span>
+                      <h4 className="font-display text-lg font-bold text-foreground">
+                        {step.title}
+                      </h4>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                      {step.text}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `Remove milestone "${step.year}: ${step.title}"?`,
+                        )
+                      ) {
+                        deleteTimelineStep(step.year, step.title);
+                        showNotification(`Removed ${step.year}`);
+                      }
+                    }}
+                    className="glass flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                    title="Delete milestone"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: SELECTED WORK (PROJECTS) */}
+      {activeTab === "projects" && (
+        <div className="mt-8 grid gap-8 lg:grid-cols-12">
+          {/* Add Project Form */}
+          <div className="lg:col-span-5">
+            <div className="glass rounded-3xl p-6 sm:p-8">
+              <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+                Portfolio Showcase
+              </span>
+              <h2 className="mt-1 font-display text-2xl font-bold">
+                Add Selected Work
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Publish a new flagship project or experimental build to your
+                portfolio.
+              </p>
+
+              <form onSubmit={handleCreateProject} className="mt-6 space-y-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Project Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Aura Spatial"
+                    value={projectForm.title}
+                    onChange={(e) =>
+                      setProjectForm({ ...projectForm, title: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Tech Tag *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. WebGL · Three.js"
+                      value={projectForm.tag}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, tag: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Year *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 2026"
+                      value={projectForm.year}
+                      onChange={(e) =>
+                        setProjectForm({ ...projectForm, year: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Project Description *
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="e.g. Real-time spatial telemetry dashboard with GPU compute shaders."
+                    value={projectForm.desc}
+                    onChange={(e) =>
+                      setProjectForm({ ...projectForm, desc: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Key Performance Metrics / Tech Highlights
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 60 FPS · Sub-20ms latency · WebGPU"
+                    value={projectForm.metrics}
+                    onChange={(e) =>
+                      setProjectForm({
+                        ...projectForm,
+                        metrics: e.target.value,
+                      })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Live Link / Repo URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://github.com"
+                    value={projectForm.link}
+                    onChange={(e) =>
+                      setProjectForm({ ...projectForm, link: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  + Add Project to Work Gallery
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Project List */}
+          <div className="space-y-4 lg:col-span-7">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold">
+                Current Projects ({projects.length})
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                Live in Work section
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {projects.map((p) => (
+                <div
+                  key={p.title}
+                  className="glass group flex items-start justify-between rounded-2xl p-5 transition-colors duration-300 hover:border-primary/50"
+                >
+                  <div className="min-w-0 pr-4">
+                    <div className="flex items-center gap-3">
+                      <h4 className="font-display text-xl font-bold text-foreground">
+                        <ScrambleText text={p.title} />
+                      </h4>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-mono text-primary">
+                        {p.year}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 text-xs uppercase tracking-widest text-primary font-semibold">
+                      {p.tag}
+                    </p>
+
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                      {p.desc}
+                    </p>
+
+                    {p.metrics && (
+                      <div className="mt-3 inline-block rounded-lg border border-glass-border bg-glass/60 px-2.5 py-0.5 text-[11px] font-mono text-foreground/80">
+                        ⚡️ {p.metrics}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove project "${p.title}"?`)) {
+                        deleteProject(p.title);
+                        showNotification(`Removed "${p.title}"`);
+                      }
+                    }}
+                    className="glass flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                    title="Delete project"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: EXPERIENCE CRAFT */}
+      {activeTab === "experiences" && (
+        <div className="mt-8 grid gap-8 lg:grid-cols-12">
+          {/* Add Experience Form */}
+          <div className="lg:col-span-5">
+            <div className="glass rounded-3xl p-6 sm:p-8">
+              <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+                Career History
+              </span>
+              <h2 className="mt-1 font-display text-2xl font-bold">
+                Add Experience Craft
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Document a leadership role, senior engineering position, or
+                studio engagement.
+              </p>
+
+              <form
+                onSubmit={handleCreateExperience}
+                className="mt-6 space-y-4"
+              >
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Role Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Lead Creative Developer"
+                    value={expForm.role}
+                    onChange={(e) =>
+                      setExpForm({ ...expForm, role: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Company / Organization *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Studio Hyperion"
+                      value={expForm.company}
+                      onChange={(e) =>
+                        setExpForm({ ...expForm, company: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Period *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 2025 — Present"
+                      value={expForm.period}
+                      onChange={(e) =>
+                        setExpForm({ ...expForm, period: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Remote / Hybrid"
+                    value={expForm.location}
+                    onChange={(e) =>
+                      setExpForm({ ...expForm, location: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Role Overview / Description *
+                  </label>
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder="e.g. Spearheading interactive web applications, high-performance WebGL product showcases..."
+                    value={expForm.description}
+                    onChange={(e) =>
+                      setExpForm({ ...expForm, description: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Key Highlights (One bullet per line)
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Engineered bespoke 60fps micro-interaction libraries...&#10;Architected design system with zero layout shifts..."
+                    value={expForm.highlights}
+                    onChange={(e) =>
+                      setExpForm({ ...expForm, highlights: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Tech Stack (Comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="React 19, Three.js, GSAP 3, TypeScript, Tailwind CSS"
+                    value={expForm.tech}
+                    onChange={(e) =>
+                      setExpForm({ ...expForm, tech: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none font-mono"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  + Add Experience Role
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Experience List */}
+          <div className="space-y-4 lg:col-span-7">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold">
+                Career Roles ({experiences.length})
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                Live in Experience section
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {experiences.map((exp) => (
+                <div
+                  key={`${exp.role}-${exp.company}`}
+                  className="glass group flex items-start justify-between rounded-2xl p-5 transition-colors duration-300 hover:border-primary/50"
+                >
+                  <div className="min-w-0 pr-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-mono text-xs uppercase text-primary font-semibold">
+                        {exp.period}
+                      </span>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
+                        {exp.company}
+                      </span>
+                    </div>
+
+                    <h4 className="mt-1 font-display text-xl font-bold text-foreground">
+                      <ScrambleText text={exp.role} />
+                    </h4>
+
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                      {exp.description}
+                    </p>
+
+                    {exp.highlights && exp.highlights.length > 0 && (
+                      <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        {exp.highlights.map((h, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-primary font-bold">✦</span>
+                            <span>{h}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {exp.tech && exp.tech.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {exp.tech.map((t) => (
+                          <span
+                            key={t}
+                            className="rounded-full border border-glass-border bg-glass px-2 py-0.5 text-[10px] font-mono text-foreground/80"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `Remove experience "${exp.role} at ${exp.company}"?`,
+                        )
+                      ) {
+                        deleteExperience(exp.role, exp.company);
+                        showNotification(`Removed "${exp.role}"`);
+                      }
+                    }}
+                    className="glass flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                    title="Delete experience"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: NEW ARTICLES (WRITING) */}
+      {activeTab === "articles" && (
+        <div className="mt-8 grid gap-8 lg:grid-cols-12">
+          {/* Add Article Form */}
+          <div className="lg:col-span-5">
+            <div className="glass rounded-3xl p-6 sm:p-8">
+              <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+                Writing & Thoughts
+              </span>
+              <h2 className="mt-1 font-display text-2xl font-bold">
+                Publish New Article
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Write creative coding notes, shader architecture deep dives, or
+                UI philosophy.
+              </p>
+
+              <form onSubmit={handleCreateArticle} className="mt-6 space-y-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Article Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. WebGPU in Production: The Future of Browser 3D"
+                    value={artForm.title}
+                    onChange={(e) =>
+                      setArtForm({ ...artForm, title: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 3D & WebGL"
+                      value={artForm.category}
+                      onChange={(e) =>
+                        setArtForm({ ...artForm, category: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                      Read Time
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 6 min read"
+                      value={artForm.readTime}
+                      onChange={(e) =>
+                        setArtForm({ ...artForm, readTime: e.target.value })
+                      }
+                      className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Publication Date
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. November 2026"
+                    value={artForm.date}
+                    onChange={(e) =>
+                      setArtForm({ ...artForm, date: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Excerpt / Teaser Summary *
+                  </label>
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder="A concise summary displayed on the article card preview..."
+                    value={artForm.excerpt}
+                    onChange={(e) =>
+                      setArtForm({ ...artForm, excerpt: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                    Full Article Content *
+                  </label>
+                  <textarea
+                    required
+                    rows={6}
+                    placeholder="Write your article thoughts and code notes here..."
+                    value={artForm.content}
+                    onChange={(e) =>
+                      setArtForm({ ...artForm, content: e.target.value })
+                    }
+                    className="glass mt-1.5 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  + Publish Article
+                </Button>
+              </form>
+            </div>
+          </div>
+
+          {/* Articles List */}
+          <div className="space-y-4 lg:col-span-7">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold">
+                Published Articles ({articles.length})
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                Live in Writing section
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {articles.map((art) => (
+                <div
+                  key={art.slug}
+                  className="glass group flex items-start justify-between rounded-2xl p-5 transition-colors duration-300 hover:border-primary/50"
+                >
+                  <div className="min-w-0 pr-4">
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {art.category}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {art.readTime} · {art.date}
+                      </span>
+                    </div>
+
+                    <h4 className="mt-2 font-display text-xl font-bold text-foreground">
+                      <ScrambleText text={art.title} />
+                    </h4>
+
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                      {art.excerpt}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove article "${art.title}"?`)) {
+                        deleteArticle(art.slug);
+                        showNotification(`Removed "${art.title}"`);
+                      }
+                    }}
+                    className="glass flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                    title="Delete article"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: BACKUP & DATA SYNC */}
+      {activeTab === "backup" && (
+        <div className="mt-8 max-w-4xl space-y-8">
+          <div className="glass rounded-3xl p-6 sm:p-8">
+            <span className="text-xs uppercase tracking-widest text-primary font-mono font-semibold">
+              Data Management
+            </span>
+            <h2 className="mt-1 font-display text-2xl font-bold">
+              Backup, Export & Restore
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              All items created in this Admin Dashboard are instantly saved to
+              your browser's persistent storage. You can export a snapshot
+              backup to JSON or paste a JSON string to restore data anytime.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-4">
+              <Button
+                onClick={() => setShowExportModal(true)}
+                className="rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow)]"
+              >
+                Export All Data (JSON) ↓
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Reset all additions back to default portfolio state? This cannot be undone.",
+                    )
+                  ) {
+                    resetToDefaults();
+                    showNotification(
+                      "✦ Portfolio reset to original default state.",
+                    );
+                  }
+                }}
+                className="glass rounded-full px-6 py-3 text-xs font-semibold uppercase tracking-wider text-destructive hover:bg-destructive/20 hover:border-destructive"
+              >
+                Reset to Factory Defaults ↺
+              </Button>
+            </div>
+          </div>
+
+          {/* Import JSON Box */}
+          <div className="glass rounded-3xl p-6 sm:p-8">
+            <h3 className="font-display text-xl font-bold">
+              Import Data from JSON
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Paste a previously exported portfolio JSON payload to import
+              certificates, projects, and articles.
+            </p>
+
+            <form onSubmit={handleImportSubmit} className="mt-4 space-y-4">
+              <textarea
+                rows={5}
+                required
+                placeholder='Paste {"projects": [...], "certificates": [...]} here...'
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                className="glass w-full rounded-2xl border border-glass-border p-4 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none"
+              />
+              <Button
+                type="submit"
+                className="rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow)]"
+              >
+                Import & Apply Data ↗
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div
+          onClick={() => setShowExportModal(false)}
+          className="fixed inset-0 z-[99] flex items-center justify-center bg-background/85 p-4 backdrop-blur-2xl"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="glass relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-3xl p-6 sm:p-8"
+          >
+            <div className="flex items-center justify-between border-b border-glass-border pb-4">
+              <h3 className="font-display text-xl font-bold text-foreground">
+                Exported Portfolio Data
+              </h3>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="glass flex h-8 w-8 items-center justify-center rounded-full text-xs text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="mt-4 text-xs text-muted-foreground">
+              Copy this JSON payload to backup your custom entries or transfer
+              them to another device.
+            </p>
+
+            <pre className="mt-4 max-h-72 overflow-y-auto rounded-2xl border border-glass-border bg-black/60 p-4 font-mono text-xs text-primary/90">
+              {exportAllData()}
+            </pre>
+
+            <div className="mt-6 flex justify-end gap-3 border-t border-glass-border pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setShowExportModal(false)}
+                className="glass rounded-full px-5 py-2 text-xs uppercase tracking-wider"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={handleExportCopy}
+                className="rounded-full bg-primary px-6 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow)]"
+              >
+                {copiedExport ? "✓ Copied to Clipboard!" : "Copy JSON Data"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
