@@ -21,41 +21,33 @@ type Tab =
   | "articles"
   | "backup";
 
-function getMasterPassword(): string {
-  if (typeof window !== "undefined") {
-    const custom = window.localStorage.getItem("portfolio_admin_custom_key");
-    if (custom && custom.trim()) return custom.trim();
-  }
-  return import.meta.env.VITE_ADMIN_PASSWORD || "shubham2026";
-}
-
 function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Auto-login if ?key=... URL parameter matches master password
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const keyParam = params.get("key");
-    if (keyParam && keyParam === getMasterPassword()) {
-      sessionStorage.setItem("admin_auth_token", "authenticated");
-      // Clean query parameter from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      onUnlock();
-    }
+    window.history.replaceState({}, document.title, window.location.pathname);
   }, [onUnlock]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const correctPassword = getMasterPassword();
-
-    if (passcode.trim() === correctPassword) {
+    try {
+      const response = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password: passcode.trim() }),
+      });
+      const result = (await response.json()) as { authenticated: boolean };
+      if (!response.ok || !result.authenticated) {
+        throw new Error("Incorrect passcode");
+      }
       sessionStorage.setItem("admin_auth_token", "authenticated");
+      sessionStorage.setItem("admin_password", passcode.trim());
       onUnlock();
-    } else {
+    } catch {
       setError(true);
       setErrorMessage("Incorrect passcode. Access denied.");
       setTimeout(() => setError(false), 2500);
@@ -189,47 +181,10 @@ export function AdminDashboard() {
   const [importText, setImportText] = useState("");
   const [showExportModal, setShowExportModal] = useState(false);
   const [copiedExport, setCopiedExport] = useState(false);
-  const [newKeyInput, setNewKeyInput] = useState("");
-  const [activeMasterKey, setActiveMasterKey] = useState(getMasterPassword());
-  const [copiedUrlKey, setCopiedUrlKey] = useState(false);
 
   const showNotification = (msg: string) => {
     setStatusMessage(msg);
     setTimeout(() => setStatusMessage(null), 3500);
-  };
-
-  const handleUpdatePasscode = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newKeyInput.trim()) return;
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        "portfolio_admin_custom_key",
-        newKeyInput.trim(),
-      );
-      setActiveMasterKey(newKeyInput.trim());
-      setNewKeyInput("");
-      showNotification("✦ Admin master key updated successfully!");
-    }
-  };
-
-  const handleResetPasscode = () => {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("portfolio_admin_custom_key");
-      setActiveMasterKey(getMasterPassword());
-      showNotification(
-        "✦ Reset passcode back to default / Vercel environment variable.",
-      );
-    }
-  };
-
-  const handleCopyDirectLink = () => {
-    if (typeof window !== "undefined") {
-      const directUrl = `${window.location.origin}/admin?key=${encodeURIComponent(activeMasterKey)}`;
-      navigator.clipboard.writeText(directUrl);
-      setCopiedUrlKey(true);
-      setTimeout(() => setCopiedUrlKey(false), 2500);
-      showNotification("✦ 1-Click secret admin link copied to clipboard!");
-    }
   };
 
   // 1. Certificate Form State
@@ -493,6 +448,7 @@ export function AdminDashboard() {
             variant="ghost"
             onClick={() => {
               sessionStorage.removeItem("admin_auth_token");
+              sessionStorage.removeItem("admin_password");
               setIsAuthenticated(false);
             }}
             className="glass flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-destructive hover:bg-destructive/15 hover:border-destructive transition-all duration-300"
@@ -1509,71 +1465,16 @@ export function AdminDashboard() {
               cannot view or modify your data without entering the correct key.
             </p>
 
-            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Direct Access Link Box */}
-              <div className="glass rounded-2xl p-5 border border-glass-border">
+            <div className="mt-6">
+              <div className="glass rounded-2xl border border-glass-border p-5">
                 <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  Your 1-Click Secret Access URL
+                  Server-side protection
                 </span>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Bookmark this link in your browser to skip typing the
-                  password:
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  The admin password and write permissions are enforced by the
+                  deployed server. Changes are stored in shared Vercel Blob
+                  storage and synchronized to every portfolio visitor.
                 </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <input
-                    readOnly
-                    value={
-                      typeof window !== "undefined"
-                        ? `${window.location.origin}/admin?key=${activeMasterKey}`
-                        : `/admin?key=${activeMasterKey}`
-                    }
-                    className="glass flex-1 rounded-xl bg-black/40 px-3 py-2 font-mono text-xs text-primary outline-none"
-                  />
-                  <Button
-                    onClick={handleCopyDirectLink}
-                    className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground"
-                  >
-                    {copiedUrlKey ? "✓ Copied" : "Copy"}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Change Passcode Box */}
-              <div className="glass rounded-2xl p-5 border border-glass-border">
-                <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  Change Master Key (Device Local)
-                </span>
-                <form
-                  onSubmit={handleUpdatePasscode}
-                  className="mt-3 flex items-center gap-2"
-                >
-                  <input
-                    type="password"
-                    placeholder="New custom key..."
-                    value={newKeyInput}
-                    onChange={(e) => setNewKeyInput(e.target.value)}
-                    className="glass flex-1 rounded-xl bg-black/40 px-3 py-2 font-mono text-xs text-foreground outline-none border border-glass-border focus:border-primary"
-                  />
-                  <Button
-                    type="submit"
-                    className="shrink-0 rounded-xl bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground"
-                  >
-                    Save
-                  </Button>
-                </form>
-                <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>
-                    Current Key:{" "}
-                    <strong className="font-mono text-primary">••••••</strong>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleResetPasscode}
-                    className="text-muted-foreground hover:text-destructive underline transition-colors"
-                  >
-                    Reset to Default
-                  </button>
-                </div>
               </div>
             </div>
 

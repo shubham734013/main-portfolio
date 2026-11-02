@@ -99,6 +99,19 @@ function saveToStorage<T>(key: string, value: T): void {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: { key } }));
+    const password = window.sessionStorage.getItem("admin_password");
+    if (password) {
+      void fetch("/api/portfolio", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ [key]: value }),
+      }).catch((error) =>
+        console.error("Failed to save portfolio data to the server:", error),
+      );
+    }
   } catch (err) {
     console.error(`Failed to save ${key} to localStorage:`, err);
   }
@@ -153,16 +166,38 @@ export function usePortfolioData() {
     setTimeline(loadFromStorage(STORAGE_KEYS.TIMELINE, defaultTimeline));
   }, []);
 
+  const syncFromServer = useCallback(async () => {
+    try {
+      const response = await fetch("/api/portfolio", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = (await response.json()) as Partial<
+        Record<keyof typeof STORAGE_KEYS, unknown>
+      >;
+      Object.entries(STORAGE_KEYS).forEach(([_, key]) => {
+        const value = (data as Record<string, unknown>)[key];
+        if (value !== undefined) {
+          window.localStorage.setItem(key, JSON.stringify(value));
+        }
+      });
+      reloadAll();
+    } catch (error) {
+      console.error("Failed to load shared portfolio data:", error);
+    }
+  }, [reloadAll]);
+
   useEffect(() => {
     reloadAll();
+    void syncFromServer();
+    const interval = window.setInterval(() => void syncFromServer(), 5000);
     const handleUpdate = () => reloadAll();
     window.addEventListener(EVENT_NAME, handleUpdate);
     window.addEventListener("storage", handleUpdate);
     return () => {
       window.removeEventListener(EVENT_NAME, handleUpdate);
       window.removeEventListener("storage", handleUpdate);
+      window.clearInterval(interval);
     };
-  }, [reloadAll]);
+  }, [reloadAll, syncFromServer]);
 
   // Project Mutations
   const addProject = useCallback(
