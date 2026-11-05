@@ -507,7 +507,7 @@ function Footer() {
           scaleY: 1,
           filter: "blur(0px)",
           opacity: 1,
-          letterSpacing: "-0.07em",
+          letterSpacing: "0em",
           backgroundPosition: "-200% 50%",
           duration: 1.35,
           ease: "power4.inOut",
@@ -612,11 +612,11 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footer-name relative mt-24 box-border w-full max-w-full select-none overflow-hidden text-center font-display text-[clamp(2rem,20vw,9rem)] font-extrabold leading-[0.8] tracking-[-0.07em]">
-        <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)]">
+      <div className="footer-name group relative mt-24 box-border w-full max-w-full cursor-pointer select-none overflow-hidden text-center font-display text-[clamp(1.5rem,9vw,8rem)] font-extrabold leading-[0.8] tracking-normal">
+        <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent transition-all duration-700 ease-out group-hover:scale-[1.015] group-hover:opacity-100 [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)] group-hover:[-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.65)]">
           SHUBHAM
         </span>
-        <span className="footer-name-fill absolute inset-0 block w-full whitespace-nowrap text-liquid">
+        <span className="footer-name-fill absolute inset-0 block w-full whitespace-nowrap text-liquid transition-[filter,transform,letter-spacing] duration-700 ease-out group-hover:-translate-y-1 group-hover:brightness-125">
           SHUBHAM
         </span>
       </div>
