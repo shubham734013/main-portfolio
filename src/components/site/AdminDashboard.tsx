@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { usePortfolioData } from "@/lib/portfolio-store";
+import { loadInquiries, type Inquiry } from "@/lib/inquiries";
 import { ScrambleText } from "@/components/site/TextEffects";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
 
 type Tab =
   | "certificates"
+  | "inquiries"
   | "timeline"
   | "projects"
   | "experiences"
@@ -185,6 +187,8 @@ export function AdminDashboard() {
   } = usePortfolioData();
 
   const [activeTab, setActiveTab] = useState<Tab>("certificates");
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [importText, setImportText] = useState("");
   const [showExportModal, setShowExportModal] = useState(false);
@@ -197,6 +201,18 @@ export function AdminDashboard() {
     setStatusMessage(msg);
     setTimeout(() => setStatusMessage(null), 3500);
   };
+
+  useEffect(() => {
+    if (!isAuthenticated || activeTab !== "inquiries") return;
+    setInquiriesLoading(true);
+    loadInquiries({})
+      .then(setInquiries)
+      .catch((error) => {
+        console.error("Failed to load inquiries", error);
+        showNotification("Could not load inquiries.");
+      })
+      .finally(() => setInquiriesLoading(false));
+  }, [activeTab, isAuthenticated]);
 
   const handleUpdatePasscode = (e: React.FormEvent) => {
     e.preventDefault();
@@ -570,6 +586,7 @@ export function AdminDashboard() {
       {/* Tab Switcher */}
       <div className="mt-10 flex flex-wrap gap-2 border-b border-glass-border pb-4 overflow-x-auto no-scrollbar">
         {[
+          { id: "inquiries" as Tab, label: "Inquiries", icon: "✉️" },
           { id: "certificates" as Tab, label: "Certificate Cards", icon: "📜" },
           { id: "timeline" as Tab, label: "Next Journey Step", icon: "⏳" },
           { id: "projects" as Tab, label: "Selected Work", icon: "🚀" },
@@ -591,6 +608,41 @@ export function AdminDashboard() {
           </button>
         ))}
       </div>
+
+      {activeTab === "inquiries" && (
+        <div className="mt-8 space-y-4">
+          {inquiriesLoading ? (
+            <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+              Loading inquiries...
+            </p>
+          ) : inquiries.length === 0 ? (
+            <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+              No inquiries received yet.
+            </p>
+          ) : (
+            inquiries.map((inquiry) => (
+              <article key={inquiry.id} className="glass rounded-2xl p-5 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-xl font-bold text-foreground">
+                      {inquiry.name}
+                    </h3>
+                    <a href={`mailto:${inquiry.email}`} className="text-sm text-primary hover:underline">
+                      {inquiry.email}
+                    </a>
+                  </div>
+                  <time className="text-xs text-muted-foreground">
+                    {new Date(inquiry.createdAt).toLocaleString()}
+                  </time>
+                </div>
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+                  {inquiry.message}
+                </p>
+              </article>
+            ))
+          )}
+        </div>
+      )}
 
       {/* TAB 1: CERTIFICATES */}
       {activeTab === "certificates" && (

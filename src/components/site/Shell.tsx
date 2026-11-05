@@ -399,9 +399,20 @@ function Nav() {
       });
       setActive(current?.hash ?? "home");
     };
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        update();
+      });
+    };
     update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [path]);
 
   return (
@@ -654,6 +665,10 @@ export function Shell({ children }: { children: ReactNode }) {
   const first = useRef(true);
 
   useEffect(() => {
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      lenisRef.current = null;
+      return;
+    }
     const lenis = new Lenis({ lerp: 0.09 });
     lenisRef.current = lenis;
     lenis.on("scroll", ScrollTrigger.update);
@@ -694,12 +709,16 @@ export function Shell({ children }: { children: ReactNode }) {
       const target = document.getElementById(hash);
       lenisRef.current?.resize();
       if (target) {
-        lenisRef.current?.scrollTo(target, {
-          duration: window.matchMedia("(prefers-reduced-motion: reduce)")
-            .matches
-            ? 0
-            : 1.4,
-        });
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(target, {
+            duration: window.matchMedia("(prefers-reduced-motion: reduce)")
+              .matches
+              ? 0
+              : 1.4,
+          });
+        } else {
+          target?.scrollIntoView({ block: "start" });
+        }
       }
     }, 120);
     return () => window.clearTimeout(timer);

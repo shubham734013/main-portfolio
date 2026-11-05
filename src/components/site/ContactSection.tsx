@@ -6,7 +6,7 @@ import { contactDetails } from "@/components/site/data";
 import { ScrambleText } from "@/components/site/TextEffects";
 import { Button } from "@/components/ui/button";
 import { Github, Linkedin, Mail, Twitter } from "lucide-react";
-import { createServerFn } from "@tanstack/react-start";
+import { submitInquiry } from "@/lib/inquiries";
 
 const socialIcons = {
   GitHub: Github,
@@ -14,46 +14,6 @@ const socialIcons = {
   "Twitter / X": Twitter,
   Email: Mail,
 };
-
-const submitInquiry = createServerFn({ method: "POST" })
-  .validator((data: { name: string; email: string; message: string }) => data)
-  .handler(async ({ data }) => {
-    const name = data.name.trim();
-    const email = data.email.trim();
-    const message = data.message.trim();
-
-    if (!name || !email || !message) {
-      throw new Error("Name, email, and message are required.");
-    }
-
-    const recipient =
-      process.env.CONTACT_EMAIL || "shubhamvaishnav640@gmail.com";
-    const response = await fetch(
-      `https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`,
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          message,
-          _subject: `New portfolio inquiry from ${name}`,
-          _template: "table",
-          _captcha: "false",
-        }),
-        signal: AbortSignal.timeout(15_000),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("The message could not be delivered right now.");
-    }
-
-    return { success: true };
-  });
 
 export function ContactSection({ embedded = false }: { embedded?: boolean }) {
   const ref = useScrollFx();
