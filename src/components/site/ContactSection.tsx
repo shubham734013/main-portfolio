@@ -6,6 +6,7 @@ import { contactDetails } from "@/components/site/data";
 import { ScrambleText } from "@/components/site/TextEffects";
 import { Button } from "@/components/ui/button";
 import { Github, Linkedin, Mail, Twitter } from "lucide-react";
+import { createServerFn } from "@tanstack/react-start";
 
 const socialIcons = {
   GitHub: Github,
@@ -13,6 +14,46 @@ const socialIcons = {
   "Twitter / X": Twitter,
   Email: Mail,
 };
+
+const submitInquiry = createServerFn({ method: "POST" })
+  .validator((data: { name: string; email: string; message: string }) => data)
+  .handler(async ({ data }) => {
+    const name = data.name.trim();
+    const email = data.email.trim();
+    const message = data.message.trim();
+
+    if (!name || !email || !message) {
+      throw new Error("Name, email, and message are required.");
+    }
+
+    const recipient =
+      process.env.CONTACT_EMAIL || "shubhamvaishnav640@gmail.com";
+    const response = await fetch(
+      `https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          _subject: `New portfolio inquiry from ${name}`,
+          _template: "table",
+          _captcha: "false",
+        }),
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("The message could not be delivered right now.");
+    }
+
+    return { success: true };
+  });
 
 export function ContactSection({ embedded = false }: { embedded?: boolean }) {
   const ref = useScrollFx();
@@ -65,29 +106,13 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
     setSubmitError("");
 
     try {
-      const response = await fetch(
-        "https://formsubmit.co/ajax/Shubhamvaishnav640@gmail.com",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formState.name.trim(),
-            email: formState.email.trim(),
-            message: formState.message.trim(),
-            _subject: `New portfolio inquiry from ${formState.name.trim()}`,
-            _template: "table",
-            _captcha: "false",
-          }),
+      await submitInquiry({
+        data: {
+          name: formState.name.trim(),
+          email: formState.email.trim(),
+          message: formState.message.trim(),
         },
-      );
-
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error("Message could not be delivered.");
-      }
+      });
 
       setSubmitted(true);
       setFormState({ name: "", email: "", message: "" });
