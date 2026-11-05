@@ -45,6 +45,12 @@ function Loader({ onDone }: { onDone: () => void }) {
     tl.to(progressObj, {
       progress: 1,
       duration: 2.8,
+      onComplete: () => {
+        const nameFill =
+          root.current?.querySelector<HTMLElement>(".loader-name-fill");
+        if (nameFill) nameFill.style.clipPath = "inset(0 0 0 0)";
+        setCount(100);
+      },
       onUpdate: () => {
         const currentLength = totalLength * progressObj.progress;
         path.style.strokeDashoffset = `${totalLength - currentLength}`;
@@ -507,7 +513,7 @@ function Footer() {
           scaleY: 1,
           filter: "blur(0px)",
           opacity: 1,
-          letterSpacing: "0em",
+          letterSpacing: "-0.07em",
           backgroundPosition: "-200% 50%",
           duration: 1.35,
           ease: "power4.inOut",
@@ -556,24 +562,24 @@ function Footer() {
             Bridging conceptual design, modern frontend engineering, and fluid
             micro-interactions into unforgettable web moments.
           </p>
-          <div className="mt-6 flex flex-wrap gap-4">
+          <div className="mt-6 grid grid-cols-1 gap-3 min-[390px]:grid-cols-2 sm:flex sm:flex-wrap sm:gap-4">
             <Link
               to="/contact"
-              className="glass rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-primary hover:border-primary transition-all"
+              className="group glass flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-primary transition-[transform,color,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none sm:min-h-0 sm:justify-start sm:px-6"
             >
-              Contact Form ↗
+              Contact Form <span className="ml-1 inline-block transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none">↗</span>
             </Link>
             <Link
               to="/writing"
-              className="glass rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-all"
+              className="group glass flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-[transform,color,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary/60 hover:text-foreground hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none sm:min-h-0 sm:justify-start sm:px-6"
             >
-              Read Articles ↗
+              Read Articles <span className="ml-1 inline-block transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none">↗</span>
             </Link>
             <Link
               to="/admin"
-              className="glass rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:border-primary hover:text-primary transition-all"
+              className="group glass flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-[transform,color,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none min-[390px]:col-span-2 sm:min-h-0 sm:justify-start"
             >
-              Admin Studio ⚙️
+              Admin Studio <span className="ml-1 inline-block transition-transform duration-300 group-hover:rotate-90 motion-reduce:transition-none">⚙️</span>
             </Link>
           </div>
         </div>
@@ -612,11 +618,11 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footer-name group relative mt-24 box-border w-full max-w-full cursor-pointer select-none overflow-hidden text-center font-display text-[clamp(1.5rem,9vw,8rem)] font-extrabold leading-[0.8] tracking-normal">
-        <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent transition-all duration-700 ease-out group-hover:scale-[1.015] group-hover:opacity-100 [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)] group-hover:[-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.65)]">
+      <div className="footer-name group relative mt-24 box-border w-full max-w-full cursor-default select-none overflow-hidden px-2 py-2 text-center font-display text-[clamp(2rem,12vw,6rem)] font-extrabold leading-[0.8] tracking-[-0.055em] sm:px-4">
+        <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)]">
           SHUBHAM
         </span>
-        <span className="footer-name-fill absolute inset-0 block w-full whitespace-nowrap text-liquid transition-[filter,transform,letter-spacing] duration-700 ease-out group-hover:-translate-y-1 group-hover:brightness-125">
+        <span className="footer-name-fill absolute inset-0 block w-full whitespace-nowrap text-liquid transition-[filter,transform,letter-spacing] duration-700 ease-out group-hover:-translate-y-1 group-hover:brightness-125 group-hover:tracking-[-0.04em] motion-reduce:transition-none">
           SHUBHAM
         </span>
       </div>

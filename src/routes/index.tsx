@@ -1,16 +1,41 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Magnetic } from "@/components/site/Shell";
 import { Split, useScrollFx } from "@/components/site/reveal";
-import { AboutSection } from "@/components/site/AboutSection";
-import { ProjectsSection } from "@/components/site/ProjectsSection";
-import { ExperienceSection } from "@/components/site/ExperienceSection";
-import { WritingSection } from "@/components/site/WritingSection";
-import { CertificatesSection } from "@/components/site/CertificatesSection";
-import { ContactSection } from "@/components/site/ContactSection";
 import { ScrambleText, GlowingBadge } from "@/components/site/TextEffects";
+
+const AboutSection = lazy(() =>
+  import("@/components/site/AboutSection").then((module) => ({
+    default: module.AboutSection,
+  })),
+);
+const ProjectsSection = lazy(() =>
+  import("@/components/site/ProjectsSection").then((module) => ({
+    default: module.ProjectsSection,
+  })),
+);
+const ExperienceSection = lazy(() =>
+  import("@/components/site/ExperienceSection").then((module) => ({
+    default: module.ExperienceSection,
+  })),
+);
+const WritingSection = lazy(() =>
+  import("@/components/site/WritingSection").then((module) => ({
+    default: module.WritingSection,
+  })),
+);
+const CertificatesSection = lazy(() =>
+  import("@/components/site/CertificatesSection").then((module) => ({
+    default: module.CertificatesSection,
+  })),
+);
+const ContactSection = lazy(() =>
+  import("@/components/site/ContactSection").then((module) => ({
+    default: module.ContactSection,
+  })),
+);
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -87,7 +112,13 @@ function AnimatedMetric({ value }: { value: string }) {
   return (
     <div
       ref={ref}
-      className="font-display text-[clamp(2.75rem,12vw,3.75rem)] font-extrabold leading-none text-liquid lg:text-5xl xl:text-6xl"
+      className="max-w-full font-display font-extrabold leading-none tracking-tight text-liquid"
+      style={{
+        fontSize:
+          value.length >= 4
+            ? "clamp(2rem, 9vw, 3.25rem)"
+            : "clamp(2.25rem, 12vw, 3.75rem)",
+      }}
     >
       0{suffix}
     </div>
@@ -100,6 +131,7 @@ function CharacterFadeText({ text }: { text: string }) {
   const animateWord = (word: HTMLSpanElement) => {
     const characters = word.querySelectorAll<HTMLElement>(".word-character");
     gsap.killTweensOf(characters);
+    gsap.set(characters, { clearProps: "transform,opacity,color" });
     gsap.fromTo(
       characters,
       {
@@ -121,13 +153,15 @@ function CharacterFadeText({ text }: { text: string }) {
   const resetWord = (word: HTMLSpanElement) => {
     const characters = word.querySelectorAll<HTMLElement>(".word-character");
     gsap.killTweensOf(characters);
+    gsap.set(characters, { clearProps: "transform,opacity,color" });
     gsap.to(characters, {
       opacity: 1,
       y: 0,
-      color: "",
+      color: "var(--foreground)",
       duration: 0.25,
       ease: "power1.out",
       stagger: 0.015,
+      onComplete: () => gsap.set(characters, { clearProps: "transform,opacity,color" }),
     });
   };
 
@@ -212,9 +246,9 @@ function Home() {
           </GlowingBadge>
         </div>
 
-        <h1 className="hero-name-mask relative w-full max-w-5xl font-display text-[clamp(2.75rem,14vw,7.5rem)] font-extrabold leading-[0.88] tracking-[-0.055em] sm:text-[clamp(3.25rem,9vw,7.5rem)]">
-          <span className="block origin-bottom text-liquid">Shubham</span>
-          <span className="block origin-bottom text-liquid">Vaishnav</span>
+        <h1 className="hero-name-mask relative w-full max-w-5xl whitespace-nowrap font-display text-[clamp(2.15rem,13vw,3.25rem)] font-extrabold leading-[0.88] tracking-[-0.055em] min-[390px]:text-[clamp(2.35rem,14vw,3.75rem)] sm:text-[clamp(3.25rem,9vw,6rem)] md:text-[clamp(5rem,9vw,7.5rem)]">
+          <span className="block origin-bottom whitespace-nowrap text-liquid">Shubham</span>
+          <span className="block origin-bottom whitespace-nowrap text-liquid">Vaishnav</span>
         </h1>
         <div className="hero-return-reveal hero-role-list mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary md:text-base">
           <span>Full-Stack Developer</span>
@@ -228,7 +262,7 @@ function Home() {
           and MongoDB, turning practical ideas into reliable digital products.
         </p>
 
-        <div className="hero-return-reveal mt-10 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+        <div className="hero-return-reveal mt-14 mb-8 flex h-[168px] flex-col items-start gap-3 sm:mt-10 sm:mb-12 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
           <Magnetic>
             <Link
               to="/"
@@ -286,7 +320,7 @@ function Home() {
       </section>
 
       {/* Key Metric Highlights */}
-      <section className="grid grid-cols-1 gap-4 px-6 py-12 min-[390px]:grid-cols-2 sm:gap-6 md:px-16 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 px-4 py-12 min-[390px]:grid-cols-2 sm:gap-6 sm:px-6 md:px-16 lg:grid-cols-4">
         {[
           [
             "4+",
@@ -308,7 +342,7 @@ function Home() {
           <div
             key={l}
             data-reveal
-            className="glass flex min-h-44 min-w-0 flex-col justify-center rounded-2xl p-5 min-[390px]:min-h-52 sm:min-h-56 sm:rounded-3xl sm:p-6 xl:p-8"
+            className="glass flex min-h-44 min-w-0 flex-col justify-center overflow-hidden rounded-2xl p-4 min-[390px]:min-h-52 sm:min-h-56 sm:rounded-3xl sm:p-6 xl:p-8"
           >
             <AnimatedMetric value={n} />
             <div className="mt-3 text-xs font-semibold uppercase leading-snug tracking-wider text-foreground sm:text-sm">
@@ -323,7 +357,9 @@ function Home() {
 
       {/* Embedded Sections */}
       <section id="about" className="scroll-mt-24 border-t border-glass-border">
-        <AboutSection embedded />
+        <Suspense fallback={<div className="min-h-[640px]" />}>
+          <AboutSection embedded />
+        </Suspense>
         <div className="px-6 pb-16 md:px-16">
           <Link
             to="/about"
@@ -336,7 +372,9 @@ function Home() {
       </section>
 
       <section id="work" className="scroll-mt-24 border-t border-glass-border">
-        <CertificatesSection embedded />
+        <Suspense fallback={<div className="min-h-[640px]" />}>
+          <CertificatesSection embedded />
+        </Suspense>
         <div className="px-6 pb-16 md:px-16">
           <Link
             to="/certificates"
@@ -352,7 +390,9 @@ function Home() {
         id="experience"
         className="scroll-mt-24 border-t border-glass-border"
       >
-        <ExperienceSection embedded />
+        <Suspense fallback={<div className="min-h-[640px]" />}>
+          <ExperienceSection embedded />
+        </Suspense>
         <div className="px-6 pb-16 md:px-16">
           <Link
             to="/experience"
@@ -368,7 +408,9 @@ function Home() {
         id="writing"
         className="scroll-mt-24 border-t border-glass-border"
       >
-        <WritingSection embedded />
+        <Suspense fallback={<div className="min-h-[640px]" />}>
+          <WritingSection embedded />
+        </Suspense>
         <div className="px-6 pb-16 md:px-16">
           <Link
             to="/writing"
@@ -384,7 +426,9 @@ function Home() {
         id="certificates"
         className="scroll-mt-24 border-t border-glass-border"
       >
-        <ProjectsSection embedded />
+        <Suspense fallback={<div className="min-h-[640px]" />}>
+          <ProjectsSection embedded />
+        </Suspense>
         <div className="px-6 pb-16 md:px-16">
           <Link
             to="/projects"
@@ -400,7 +444,9 @@ function Home() {
         id="contact"
         className="scroll-mt-24 border-t border-glass-border"
       >
-        <ContactSection embedded />
+        <Suspense fallback={<div className="min-h-[520px]" />}>
+          <ContactSection embedded />
+        </Suspense>
         <div className="px-6 pb-16 md:px-16">
           <Link
             to="/contact"

@@ -67,6 +67,19 @@ export function ScrambleText({
     <Component
       onMouseEnter={interactive ? startScramble : undefined}
       onMouseLeave={interactive ? handleLeave : undefined}
+      onFocus={interactive ? startScramble : undefined}
+      onBlur={interactive ? handleLeave : undefined}
+      onClick={interactive ? startScramble : undefined}
+      onKeyDown={
+        interactive
+          ? (event: { key: string; preventDefault: () => void }) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                startScramble();
+              }
+            }
+          : undefined
+      }
       data-hover={interactive ? true : undefined}
       className={`inline-block transition-[letter-spacing,color] duration-300 hover:tracking-[0.025em] ${className}`}
     >

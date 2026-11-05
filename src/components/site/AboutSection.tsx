@@ -5,7 +5,8 @@ import { Split, Tilt, useScrollFx } from "@/components/site/reveal";
 import { ScrambleText } from "@/components/site/TextEffects";
 import { SignatureLogo } from "@/components/site/SignatureLogo";
 import { usePortfolioData } from "@/lib/portfolio-store";
-import journeyVideo from "@/assests/journey video.mp4";
+import journeyVideo from "@/assests/journey-video-optimized.mp4";
+import journeyPoster from "@/assests/journey-video-poster.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,7 +28,27 @@ const traits = [
 export function AboutSection({ embedded = false }: { embedded?: boolean }) {
   const ref = useScrollFx();
   const line = useRef<HTMLDivElement>(null);
+  const journeyVideoRef = useRef<HTMLVideoElement>(null);
   const { timeline } = usePortfolioData();
+
+  useEffect(() => {
+    const video = journeyVideoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          void video.play().catch(() => undefined);
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -74,7 +95,7 @@ export function AboutSection({ embedded = false }: { embedded?: boolean }) {
             <h2 className="mt-6 max-w-full font-display text-5xl font-extrabold leading-[0.9] sm:text-6xl md:text-7xl xl:text-8xl">
               <Split text="Hi, I'm" />
               <br />
-              <span className="inline-block max-w-full font-script text-[clamp(4.25rem,18vw,7rem)] font-normal normal-case leading-[0.82] text-liquid transition-all hover:brightness-125 md:text-[clamp(5.5rem,9vw,8rem)]">
+              <span className="relative top-2 inline-block max-w-full px-[0.03em] pb-[0.12em] pt-[0.08em] font-script text-[clamp(4.25rem,18vw,7rem)] font-normal normal-case leading-[1] text-liquid transition-all hover:brightness-125 md:top-3 md:text-[clamp(5.5rem,9vw,8rem)]">
                 Shubham
               </span>
             </h2>
@@ -90,9 +111,17 @@ export function AboutSection({ embedded = false }: { embedded?: boolean }) {
               {["React.js", "Node.js", "MongoDB", "TypeScript"].map((badge) => (
                 <span
                   key={badge}
-                  className="rounded-full border border-glass-border bg-glass px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary transition-all duration-300 hover:border-primary hover:shadow-[var(--shadow-glow)]"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      event.currentTarget.querySelector("span")?.click();
+                    }
+                  }}
+                  className="motion-safe:cursor-pointer motion-safe:select-none rounded-full border border-glass-border bg-glass px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary transition-[transform,border-color,color,box-shadow,background-color] duration-300 hover:-translate-y-1 hover:border-primary hover:bg-primary/[0.08] hover:text-foreground hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none"
                 >
-                  <ScrambleText text={badge} />
+                  <ScrambleText text={badge} interactive />
                 </span>
               ))}
             </div>
@@ -100,21 +129,22 @@ export function AboutSection({ embedded = false }: { embedded?: boolean }) {
 
           <Tilt className="mx-auto aspect-[4/5] w-full max-w-[20rem] rounded-[1.75rem] sm:max-w-sm md:max-w-md lg:max-w-lg">
             <div className="group/avatar relative h-full overflow-hidden rounded-[1.75rem] border border-glass-border bg-[linear-gradient(145deg,oklch(18%_0.025_225),oklch(9%_0.02_250))] shadow-[0_24px_80px_-32px_rgba(0,0,0,0.9)]">
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                className="absolute inset-0 h-full w-full object-cover"
-                src={journeyVideo}
-                aria-label="Journey video"
-              />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,oklch(86%_0.15_195_/_0.18),transparent_28%),radial-gradient(circle_at_24%_78%,oklch(64%_0.18_285_/_0.16),transparent_38%)]" />
               <div className="absolute left-[12%] top-[9%] aspect-square w-[58%] rounded-full border border-primary/20 bg-primary/[0.08]" />
               <div className="absolute bottom-[16%] right-[8%] aspect-square w-[46%] rounded-full bg-accent/10 blur-xl" />
-              <div className="absolute inset-0 flex items-center justify-center px-12 select-none">
-                <SignatureLogo className="-rotate-[8deg] text-[clamp(10rem,28vw,13rem)] text-foreground/90 drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)]" />
+              <video
+                ref={journeyVideoRef}
+                className="absolute inset-0 z-10 h-full w-full object-cover"
+                src={journeyVideo}
+                poster={journeyPoster}
+                loop
+                muted
+                playsInline
+                preload="none"
+                aria-label="Shubham's creative journey"
+              />
+              <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-12 select-none">
+                <SignatureLogo className="-rotate-[8deg] text-[clamp(7rem,20vw,10rem)] text-foreground/90 drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)]" />
               </div>
               <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-center justify-between gap-3 border-t border-glass-border pt-4 text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-widest">
                 <span>Jaipur, India</span>
