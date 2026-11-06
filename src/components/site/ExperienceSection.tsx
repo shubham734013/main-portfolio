@@ -92,11 +92,11 @@ export function ExperienceSection({
       )}
 
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="min-w-0">
+        <div className="w-full min-w-0 sm:w-auto">
           <p className="text-xs uppercase tracking-[0.5em] text-primary">
             Career & Competence
           </p>
-          <h2 className="mt-4 max-w-full font-display text-[clamp(2rem,11vw,2.75rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(2.35rem,11vw,3rem)] sm:text-6xl md:text-7xl xl:text-8xl">
+          <h2 className="mt-4 max-w-full font-display text-[clamp(1.5rem,8vw,2.25rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(1.75rem,9vw,2.6rem)] sm:text-6xl md:text-7xl xl:text-8xl">
             <Split text="Experience &" />{" "}
             <span className="text-liquid">craft</span>
           </h2>
