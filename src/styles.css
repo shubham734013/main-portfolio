@@ -302,6 +302,29 @@ html.lenis body {
 
 .article-modal-box {
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 65%, transparent) transparent;
+}
+
+.article-modal-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.article-modal-box::-webkit-scrollbar-track {
+  margin: 12px 0;
+  background: transparent;
+}
+
+.article-modal-box::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--primary) 70%, transparent);
+  background-clip: padding-box;
+}
+
+.article-modal-box::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  background-clip: padding-box;
 }
 
 /* ---------- Touch-only mobile motion ---------- */
