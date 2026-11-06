@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { list, put } from "@vercel/blob";
+import nodemailer from "nodemailer";
 
 export interface Inquiry {
   id: string;
@@ -8,6 +9,22 @@ export interface Inquiry {
   message: string;
   createdAt: string;
 }
+
+// SMTP configuration
+const smtpConfig = {
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+  secure: process.env.SMTP_PORT === "465",
+  auth: {
+    user: process.env.SMTP_USER || "",
+    pass: process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "",
+  },
+};
+
+// Create reusable transporter object
+const createTransporter = () => {
+  return nodemailer.createTransport(smtpConfig);
+};
 
 export const verifyAdminPassword = createServerFn({ method: "POST" })
   .validator((data: { password: string }) => data)
@@ -54,35 +71,51 @@ export const submitInquiry = createServerFn({ method: "POST" })
     }
 
     let emailed = false;
-    if (process.env.RESEND_API_KEY) {
+    // Send email via SMTP if configured
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass =
+      process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
+    const contactEmail = process.env.CONTACT_EMAIL || "shubhamvaishnav640@gmail.com";
+
+    if (smtpUser && smtpPass) {
       try {
-        const response = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from:
-              process.env.CONTACT_FROM_EMAIL ||
-              "Portfolio <onboarding@resend.dev>",
-            to:
-              process.env.CONTACT_EMAIL ||
-              "shubhamvaishnav640@gmail.com",
-            reply_to: email,
-            subject: `New portfolio inquiry from ${name}`,
-            text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
-          }),
-          signal: AbortSignal.timeout(15_000),
+        const transporter = createTransporter();
+
+        // Test the connection first
+        await transporter.verify();
+
+        // Send the email
+        await transporter.sendMail({
+          from:
+            process.env.SMTP_FROM || `Portfolio Contact Form <${smtpUser}>`,
+          to: process.env.SMTP_TO || contactEmail,
+          replyTo: email,
+          subject: `New portfolio inquiry from ${name}`,
+          text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+              <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">New Portfolio Inquiry</h2>
+              <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+              </div>
+              <div style="margin: 20px 0;">
+                <h3 style="color: #555;">Message:</h3>
+                <p style="line-height: 1.6; white-space: pre-wrap; background-color: #fff; padding: 15px; border: 1px solid #e0e0e0; border-radius: 5px;">${message}</p>
+              </div>
+              <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #666;">
+                <p>This inquiry was submitted via your portfolio contact form.</p>
+                <p><strong>Reply to:</strong> <a href="mailto:${email}">${email}</a></p>
+              </div>
+            </div>
+          `,
         });
-        if (!response.ok) {
-          throw new Error(
-            `Resend returned ${response.status}: ${await response.text()}`,
-          );
-        }
+
         emailed = true;
+        console.log(`Inquiry email sent successfully to ${contactEmail}`);
       } catch (error) {
-        console.error("Inquiry email notification failed", error);
+        console.error("SMTP email notification failed:", error);
       }
     }
 
