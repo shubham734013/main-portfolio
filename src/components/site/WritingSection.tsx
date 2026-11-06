@@ -179,7 +179,7 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl"
+            className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl"
           >
             <div className="flex items-center justify-between border-b border-glass-border pb-4">
               <span className="text-xs uppercase tracking-widest text-primary font-medium">
