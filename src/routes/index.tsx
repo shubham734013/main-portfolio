@@ -168,7 +168,7 @@ function CharacterFadeText({ text }: { text: string }) {
   return (
     <h2
       ref={heading}
-      className="max-w-5xl cursor-default font-display text-4xl font-bold leading-tight md:text-6xl"
+      className="max-w-5xl cursor-default text-balance font-display text-[clamp(1.9rem,9vw,2.25rem)] font-bold leading-[1.08] tracking-[-0.035em] min-[390px]:text-[clamp(2.15rem,9vw,2.75rem)] sm:text-5xl md:text-6xl md:leading-tight"
       aria-label={text}
     >
       {text.split(" ").map((word, wordIndex) => (
@@ -315,12 +315,12 @@ function Home() {
       </section>
 
       {/* Philosophy Statement */}
-      <section className="px-6 py-32 md:px-16">
+      <section className="px-5 py-24 min-[390px]:px-6 sm:px-10 sm:py-28 md:px-16 md:py-32">
         <CharacterFadeText text="I craft digital experiences where code meets motion and every pixel has a pulse." />
       </section>
 
       {/* Key Metric Highlights */}
-      <section className="grid grid-cols-1 gap-4 px-4 py-12 min-[390px]:grid-cols-2 sm:gap-6 sm:px-6 md:px-16 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 px-4 py-12 min-[480px]:grid-cols-2 sm:gap-5 sm:px-6 md:px-16 lg:grid-cols-4">
         {[
           [
             "4+",
@@ -342,7 +342,7 @@ function Home() {
           <div
             key={l}
             data-reveal
-            className="glass flex min-h-44 min-w-0 flex-col justify-center overflow-hidden rounded-2xl p-4 min-[390px]:min-h-52 sm:min-h-56 sm:rounded-3xl sm:p-6 xl:p-8"
+            className="glass flex min-h-[11rem] min-w-0 flex-col justify-center overflow-hidden rounded-[1.75rem] p-5 min-[480px]:min-h-52 sm:min-h-56 sm:rounded-3xl sm:p-6 xl:p-8"
           >
             <AnimatedMetric value={n} />
             <div className="mt-3 text-xs font-semibold uppercase leading-snug tracking-wider text-foreground sm:text-sm">
