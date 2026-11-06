@@ -300,6 +300,11 @@ html.lenis body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+.article-modal-box {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
 /* ---------- Touch-only mobile motion ---------- */
 .scroll-progress {
   position: fixed;
