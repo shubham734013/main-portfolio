@@ -110,7 +110,7 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
           <p className="text-xs uppercase tracking-[0.5em] text-primary">
             Get in touch
           </p>
-          <h2 className="mt-4 font-display text-5xl font-extrabold md:text-7xl xl:text-8xl">
+          <h2 className="mt-4 max-w-full font-display text-[clamp(2rem,11vw,2.75rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(2.35rem,11vw,3rem)] sm:text-6xl md:text-7xl xl:text-8xl">
             <Split text="Let's connect &" />{" "}
             <span className="text-liquid">collaborate</span>
           </h2>
