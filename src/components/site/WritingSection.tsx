@@ -181,7 +181,7 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
             onClick={(e) => e.stopPropagation()}
             className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-glass-border pb-4">
+            <div className="-top-5 z-20 -mx-5 flex items-center justify-between border-b border-glass-border bg-background/95 px-5 pb-4 pt-5 backdrop-blur-xl sticky sm:-top-8 sm:-mx-8 sm:px-8 sm:pt-6 md:-top-10 md:-mx-10 md:px-10 md:pt-8">
               <span className="text-xs uppercase tracking-widest text-primary font-medium">
                 {activeArticle.category} · {activeArticle.readTime}
               </span>
