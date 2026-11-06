@@ -302,7 +302,6 @@ html.lenis body {
 
 .article-modal-box {
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
 }
 
 /* ---------- Touch-only mobile motion ---------- */
