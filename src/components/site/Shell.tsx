@@ -539,6 +539,11 @@ function Footer() {
           backgroundPosition: "200% 50%",
           duration: 0.75,
           ease: "back.out(1.35)",
+          scrollTrigger: {
+            trigger: ref.current,
+            start: "top 75%",
+            toggleActions: "play reverse play reverse",
+          },
         } : {
           clipPath: "inset(0 0% 0 0)",
           y: 0,
@@ -578,6 +583,18 @@ function Footer() {
           },
         },
       );
+
+      gsap.to(".footer-name-fill", {
+        y: compact ? -4 : -14,
+        scale: compact ? 1 : 1.04,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".footer-name",
+          start: "top bottom",
+          end: "bottom 25%",
+          scrub: 1,
+        },
+      });
     }, ref);
     return () => ctx.revert();
   }, [path]);
@@ -653,11 +670,11 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footer-name group relative mt-20 box-border w-full max-w-full cursor-default select-none overflow-hidden px-0 py-3 text-center font-display text-[clamp(1.75rem,9.5vw,3rem)] font-extrabold leading-[0.85] tracking-[-0.07em] sm:mt-24 sm:px-4 sm:text-[clamp(4rem,12vw,6rem)]">
+      <div className="footer-name group relative mt-20 box-border w-full max-w-full cursor-default select-none overflow-hidden px-0 py-3 text-center font-display text-[clamp(1.75rem,9.5vw,3rem)] font-extrabold leading-[0.85] tracking-[-0.07em] [perspective:800px] sm:mt-24 sm:px-4 sm:text-[clamp(4rem,12vw,6rem)]">
         <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)]">
           SHUBHAM
         </span>
-        <span className="footer-name-fill absolute inset-0 block w-full origin-center whitespace-nowrap text-liquid transition-[opacity,filter] duration-500 ease-out group-hover:brightness-110 motion-reduce:transition-none">
+        <span className="footer-name-fill absolute inset-0 block w-full origin-center whitespace-nowrap text-liquid transition-[filter,transform] duration-500 ease-out group-hover:-translate-y-1 group-hover:brightness-110 motion-reduce:transition-none motion-reduce:transform-none">
           SHUBHAM
         </span>
       </div>
