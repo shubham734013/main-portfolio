@@ -131,12 +131,18 @@ export function ProjectsSection({ embedded = false }: { embedded?: boolean }) {
                 )}
               </div>
 
-              <div className="flex items-center justify-between gap-3 border-t border-glass-border pt-4 text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-primary sm:text-xs sm:tracking-widest">
+              <a
+                href={p.link || "/projects"}
+                target={p.link ? "_blank" : undefined}
+                rel={p.link ? "noopener noreferrer" : undefined}
+                aria-label={`Explore ${p.title} project details`}
+                className="flex items-center justify-between gap-3 border-t border-glass-border pt-4 text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-primary transition-colors hover:text-foreground sm:text-xs sm:tracking-widest"
+              >
                 <span className="min-w-0">Explore Project Details</span>
                 <span className="text-lg transition-transform duration-300 group-hover/card:translate-x-2">
                   ↗
                 </span>
-              </div>
+              </a>
             </div>
           </Tilt>
         ))}
