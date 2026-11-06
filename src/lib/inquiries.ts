@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { list, put } from "@vercel/blob";
-import nodemailer from "nodemailer";
 
 export interface Inquiry {
   id: string;
@@ -9,22 +8,6 @@ export interface Inquiry {
   message: string;
   createdAt: string;
 }
-
-// SMTP configuration
-const smtpConfig = {
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
-  secure: process.env.SMTP_PORT === "465",
-  auth: {
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "",
-  },
-};
-
-// Create reusable transporter object
-const createTransporter = () => {
-  return nodemailer.createTransport(smtpConfig);
-};
 
 export const verifyAdminPassword = createServerFn({ method: "POST" })
   .validator((data: { password: string }) => data)
@@ -71,27 +54,24 @@ export const submitInquiry = createServerFn({ method: "POST" })
     }
 
     let emailed = false;
-    // Send email via SMTP if configured
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass =
-      process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
-    const contactEmail = process.env.CONTACT_EMAIL || "shubhamvaishnav640@gmail.com";
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const contactEmail =
+      process.env.CONTACT_TO_EMAIL || "shubhamvaishnav640@gmail.com";
 
-    if (smtpUser && smtpPass) {
+    if (resendApiKey) {
       try {
-        const transporter = createTransporter();
-
-        // Test the connection first
-        await transporter.verify();
-
-        // Send the email
-        await transporter.sendMail({
-          from:
-            process.env.SMTP_FROM || `Portfolio Contact Form <${smtpUser}>`,
-          to: process.env.SMTP_TO || contactEmail,
-          replyTo: email,
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Portfolio <onboarding@resend.dev>",
+          to: contactEmail,
+            reply_to: email,
           subject: `New portfolio inquiry from ${name}`,
-          text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+            text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
               <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">New Portfolio Inquiry</h2>
@@ -110,12 +90,19 @@ export const submitInquiry = createServerFn({ method: "POST" })
               </div>
             </div>
           `,
+          }),
+          signal: AbortSignal.timeout(15_000),
         });
 
+        if (!response.ok) {
+          throw new Error(
+            `Resend returned ${response.status}: ${await response.text()}`,
+          );
+        }
         emailed = true;
         console.log(`Inquiry email sent successfully to ${contactEmail}`);
       } catch (error) {
-        console.error("SMTP email notification failed:", error);
+        console.error("Resend email notification failed:", error);
       }
     }
 
