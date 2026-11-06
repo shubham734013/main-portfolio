@@ -189,7 +189,7 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                 Find me online
               </h3>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="mt-6 grid grid-cols-1 gap-3 min-[390px]:grid-cols-2">
                 {contactDetails.socials.map((s) => (
                   <Magnetic key={s.name} className="w-full">
                     <a
@@ -202,7 +202,7 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                           ? undefined
                           : "noopener noreferrer"
                       }
-                      className="glass group flex flex-col rounded-2xl p-4 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1"
+                      className="glass group flex min-w-0 flex-col rounded-2xl p-4 transition-all duration-300 hover:border-primary/60 hover:-translate-y-1 active:scale-[0.98] motion-reduce:transform-none"
                     >
                       <span className="mb-3 flex size-10 items-center justify-center rounded-xl border border-glass-border bg-white/5 text-primary transition-transform duration-300 group-hover:scale-105">
                         {(() => {
@@ -216,7 +216,7 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                       <span className="text-sm font-semibold text-foreground group-hover:text-primary">
                         <ScrambleText text={s.name} />
                       </span>
-                      <span className="text-xs text-muted-foreground font-mono mt-0.5">
+                      <span className="mt-0.5 block w-full break-all text-[10px] leading-relaxed text-muted-foreground font-mono min-[390px]:truncate sm:text-xs">
                         {s.handle}
                       </span>
                     </a>
