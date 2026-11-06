@@ -27,6 +27,9 @@ export const submitInquiry = createServerFn({ method: "POST" })
     if (!name || !email || !message) {
       throw new Error("Name, email, and message are required.");
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("Please enter a valid email address.");
+    }
 
     const inquiry: Inquiry = {
       id: crypto.randomUUID(),
@@ -36,15 +39,24 @@ export const submitInquiry = createServerFn({ method: "POST" })
       createdAt: new Date().toISOString(),
     };
 
-    await put(
-      `inquiries/${inquiry.id}.json`,
-      JSON.stringify(inquiry),
-      { access: "private", addRandomSuffix: false },
-    );
+    let stored = false;
+    let storageError: unknown;
+    try {
+      await put(
+        `inquiries/${inquiry.id}.json`,
+        JSON.stringify(inquiry),
+        { access: "private", addRandomSuffix: false },
+      );
+      stored = true;
+    } catch (error) {
+      storageError = error;
+      console.error("Inquiry storage failed", error);
+    }
 
+    let emailed = false;
     if (process.env.RESEND_API_KEY) {
       try {
-        await fetch("https://api.resend.com/emails", {
+        const response = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
@@ -63,9 +75,23 @@ export const submitInquiry = createServerFn({ method: "POST" })
           }),
           signal: AbortSignal.timeout(15_000),
         });
+        if (!response.ok) {
+          throw new Error(
+            `Resend returned ${response.status}: ${await response.text()}`,
+          );
+        }
+        emailed = true;
       } catch (error) {
         console.error("Inquiry email notification failed", error);
       }
+    }
+
+    if (!stored && !emailed) {
+      throw new Error(
+        storageError
+          ? "Inquiry storage is unavailable and email delivery is not configured."
+          : "Email delivery is not configured.",
+      );
     }
 
     return { success: true };
@@ -73,17 +99,22 @@ export const submitInquiry = createServerFn({ method: "POST" })
 
 export const loadInquiries = createServerFn({ method: "GET" }).handler(
   async () => {
-    const { blobs } = await list({ prefix: "inquiries/" });
-    const inquiries = await Promise.all(
-      blobs.map(async (blob) => {
-        const response = await fetch(blob.downloadUrl);
-        if (!response.ok) return null;
-        return (await response.json()) as Inquiry;
-      }),
-    );
+    try {
+      const { blobs } = await list({ prefix: "inquiries/" });
+      const inquiries = await Promise.all(
+        blobs.map(async (blob) => {
+          const response = await fetch(blob.downloadUrl);
+          if (!response.ok) return null;
+          return (await response.json()) as Inquiry;
+        }),
+      );
 
-    return inquiries
-      .filter((inquiry): inquiry is Inquiry => inquiry !== null)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      return inquiries
+        .filter((inquiry): inquiry is Inquiry => inquiry !== null)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    } catch (error) {
+      console.error("Failed to load inquiries", error);
+      return [];
+    }
   },
 );
