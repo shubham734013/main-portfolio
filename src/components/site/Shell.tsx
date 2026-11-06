@@ -631,7 +631,7 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footer-name group relative mt-20 box-border h-[52px] w-full max-w-full cursor-default select-none overflow-hidden px-0 text-center font-display text-[clamp(1.75rem,9.5vw,3rem)] font-extrabold leading-[0.85] tracking-[-0.07em] sm:mt-24 sm:h-auto sm:px-4 sm:py-3 sm:text-[clamp(4rem,12vw,6rem)]">
+      <div className="footer-name group relative mt-20 box-border h-[52px] w-full max-w-full cursor-default select-none overflow-hidden px-0 text-center font-display text-[clamp(1.75rem,9.5vw,3rem)] font-extrabold leading-[0.85] tracking-[-0.07em] sm:mt-24 sm:h-[96px] sm:px-4 sm:text-[clamp(4rem,12vw,6rem)]">
         <span className="footer-name-fill absolute inset-0 block w-full origin-center whitespace-nowrap text-liquid">
           SHUBHAM
         </span>
