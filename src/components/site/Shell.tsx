@@ -503,101 +503,6 @@ function Nav() {
 /* ---------------- Footer with scroll-fill name & rich navigation ---------------- */
 function Footer() {
   const ref = useRef<HTMLElement>(null);
-  const path = useRouterState({ select: (s) => s.location.pathname });
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const compact = window.matchMedia("(max-width: 639px)").matches;
-      gsap.fromTo(
-        ".footer-name-fill",
-        compact ? {
-          clipPath: "inset(0 0 100% 0)",
-          y: 24,
-          scale: 0.86,
-          rotateX: 18,
-          filter: "blur(10px)",
-          opacity: 0,
-          letterSpacing: "0",
-          backgroundPosition: "0% 50%",
-        } : {
-          clipPath: "inset(100% 0 0 0)",
-          y: 90,
-          scaleY: 1.3,
-          filter: "blur(18px)",
-          opacity: 0,
-          letterSpacing: "0.12em",
-          backgroundPosition: "200% 50%",
-        },
-        compact ? {
-          clipPath: "inset(0 0 0 0)",
-          y: 0,
-          scale: 1,
-          rotateX: 0,
-          filter: "blur(0px)",
-          opacity: 1,
-          letterSpacing: "-0.055em",
-          backgroundPosition: "200% 50%",
-          duration: 0.75,
-          ease: "back.out(1.35)",
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top 75%",
-            toggleActions: "play reverse play reverse",
-          },
-        } : {
-          clipPath: "inset(0 0% 0 0)",
-          y: 0,
-          scaleY: 1,
-          filter: "blur(0px)",
-          opacity: 1,
-          letterSpacing: "-0.07em",
-          backgroundPosition: "-200% 50%",
-          duration: 1.35,
-          ease: "power4.inOut",
-          overwrite: "auto",
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top 75%",
-            toggleActions: "play reverse play reverse",
-          },
-        },
-      );
-
-      gsap.fromTo(
-        ".footer-name-outline",
-        compact
-          ? { opacity: 0, scale: 0.92 }
-          : { opacity: 0.18, y: 44, scaleX: 0.82 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          scaleX: 1,
-          duration: compact ? 0.65 : 1.6,
-          ease: "expo.out",
-          overwrite: "auto",
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top 75%",
-            toggleActions: "play reverse play reverse",
-          },
-        },
-      );
-
-      gsap.to(".footer-name-fill", {
-        y: compact ? -4 : -14,
-        scale: compact ? 1 : 1.04,
-        ease: "none",
-        scrollTrigger: {
-          trigger: ".footer-name",
-          start: "top bottom",
-          end: "bottom 25%",
-          scrub: 1,
-        },
-      });
-    }, ref);
-    return () => ctx.revert();
-  }, [path]);
 
   return (
     <footer
@@ -674,7 +579,7 @@ function Footer() {
         <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)]">
           SHUBHAM
         </span>
-        <span className="footer-name-fill absolute inset-0 block w-full origin-center whitespace-nowrap text-liquid transition-[filter,transform] duration-500 ease-out group-hover:-translate-y-1 group-hover:brightness-110 motion-reduce:transition-none motion-reduce:transform-none">
+        <span className="footer-name-fill absolute inset-0 block w-full origin-center whitespace-nowrap text-liquid">
           SHUBHAM
         </span>
       </div>
