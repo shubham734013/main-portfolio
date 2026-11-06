@@ -504,6 +504,59 @@ function Nav() {
 function Footer() {
   const ref = useRef<HTMLElement>(null);
 
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set(".footer-name-fill", {
+          clipPath: "inset(0 0 0 0)",
+          y: 0,
+          backgroundPosition: "0% 50%",
+        });
+        return;
+      }
+
+      gsap.fromTo(
+        ".footer-name-fill",
+        {
+          clipPath: "inset(100% 0 0 0)",
+          y: 28,
+          filter: "blur(8px)",
+          opacity: 0.15,
+          backgroundPosition: "200% 50%",
+        },
+        {
+          clipPath: "inset(0 0 0 0)",
+          y: 0,
+          filter: "blur(0px)",
+          opacity: 1,
+          backgroundPosition: "-100% 50%",
+          duration: 1.1,
+          ease: "power4.out",
+          scrollTrigger: {
+            trigger: ".footer-name",
+            start: "top 78%",
+            toggleActions: "play none none none",
+          },
+        },
+      );
+
+      gsap.to(".footer-name-fill", {
+        backgroundPosition: "-200% 50%",
+        duration: 3.2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        scrollTrigger: {
+          trigger: ".footer-name",
+          start: "top 78%",
+          toggleActions: "play pause resume pause",
+        },
+      });
+    }, ref);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <footer
       id="site-footer"
