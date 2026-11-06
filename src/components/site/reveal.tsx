@@ -29,7 +29,31 @@ export function useScrollFx() {
           },
         );
       });
-      gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
+      const touchMobile =
+        window.matchMedia("(max-width: 767px)").matches &&
+        window.matchMedia("(pointer: coarse)").matches &&
+        navigator.maxTouchPoints > 0;
+      gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el, i) => {
+        if (touchMobile) {
+          const fromX = i % 2 === 0 ? -40 : 40;
+          gsap.fromTo(
+            el,
+            { x: fromX, y: 40, opacity: 0, rotate: fromX / 20, clipPath: "inset(12% 8% 12% 8% round 24px)" },
+            {
+              x: 0,
+              y: 0,
+              opacity: 1,
+              rotate: 0,
+              clipPath: "inset(0% 0% 0% 0% round 0px)",
+              immediateRender: false,
+              duration: 0.9,
+              ease: "expo.out",
+              clearProps: "clipPath",
+              scrollTrigger: { trigger: el, start: "top 94%", invalidateOnRefresh: true },
+            },
+          );
+          return;
+        }
         gsap.fromTo(
           el,
           { y: 80, opacity: 0, scale: 0.95, filter: "blur(8px)" },

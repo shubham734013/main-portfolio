@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { SignatureLogo } from "@/components/site/SignatureLogo";
+import { MobileFx } from "@/components/site/MobileFx";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -476,7 +477,7 @@ function Nav() {
           </button>
         </nav>
         {mobileOpen && (
-          <div className="glass absolute left-1/2 top-[calc(100%+0.75rem)] grid w-[min(19rem,calc(100vw-2rem))] -translate-x-1/2 grid-cols-2 gap-2 rounded-3xl p-3 shadow-2xl">
+          <div className="mobile-menu glass absolute left-1/2 top-[calc(100%+0.75rem)] grid w-[min(19rem,calc(100vw-2rem))] -translate-x-1/2 grid-cols-2 gap-2 rounded-3xl p-3 shadow-2xl">
             {links.map((link) => (
               <Link
                 key={link.hash}
@@ -744,6 +745,7 @@ export function Shell({ children }: { children: ReactNode }) {
         style={{ clipPath: "circle(0% at 50% 100%)" }}
       />
       <Cursor />
+      <MobileFx />
       <Nav />
       <main key={path} className="page-enter relative z-10">
         {children}
