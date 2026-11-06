@@ -505,56 +505,59 @@ function Footer() {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        gsap.set(".footer-name-fill", {
-          clipPath: "inset(0 0 0 0)",
-          y: 0,
-          backgroundPosition: "0% 50%",
-        });
-        return;
-      }
+    const name = ref.current?.querySelector<HTMLElement>(".footer-name");
+    const text = ref.current?.querySelector<HTMLElement>(".footer-name-fill");
+    if (!name || !text) return;
 
-      gsap.fromTo(
-        ".footer-name-fill",
-        {
-          clipPath: "inset(100% 0 0 0)",
-          y: 28,
-          filter: "blur(8px)",
-          opacity: 0.15,
-          backgroundPosition: "200% 50%",
-        },
-        {
-          clipPath: "inset(0 0 0 0)",
-          y: 0,
-          filter: "blur(0px)",
-          opacity: 1,
-          backgroundPosition: "-100% 50%",
-          duration: 1.1,
-          ease: "power4.out",
-          scrollTrigger: {
-            trigger: ".footer-name",
-            start: "top 78%",
-            toggleActions: "play none none none",
-          },
-        },
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      text.style.clipPath = "inset(0 0 0 0)";
+      return;
+    }
+
+    text.style.clipPath = "inset(100% 0 0 0)";
+    text.style.transform = "translateY(28px)";
+    text.style.filter = "blur(8px)";
+    text.style.opacity = "0.15";
+
+    let revealAnimation: Animation | undefined;
+    let shimmerAnimation: Animation | undefined;
+    let revealed = false;
+
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      revealAnimation = text.animate(
+        [
+          { clipPath: "inset(100% 0 0 0)", transform: "translateY(28px)", filter: "blur(8px)", opacity: 0.15 },
+          { clipPath: "inset(0 0 0 0)", transform: "translateY(0)", filter: "blur(0px)", opacity: 1 },
+        ],
+        { duration: 1100, easing: "ease-in", fill: "forwards" },
       );
-
-      gsap.to(".footer-name-fill", {
-        backgroundPosition: "-200% 50%",
-        duration: 3.2,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        scrollTrigger: {
-          trigger: ".footer-name",
-          start: "top 78%",
-          toggleActions: "play pause resume pause",
-        },
+      revealAnimation.finished.then(() => {
+        shimmerAnimation = text.animate(
+          [{ backgroundPosition: "200% 50%" }, { backgroundPosition: "-200% 50%" }],
+          { duration: 3200, easing: "ease-in-out", iterations: Infinity, direction: "alternate" },
+        );
       });
-    }, ref);
+      observer.disconnect();
+    };
 
-    return () => ctx.revert();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) reveal();
+      },
+      { threshold: 0.05, rootMargin: "0px 0px 8% 0px" },
+    );
+
+    observer.observe(name);
+    const bounds = name.getBoundingClientRect();
+    if (bounds.top < window.innerHeight && bounds.bottom > 0) reveal();
+
+    return () => {
+      observer.disconnect();
+      revealAnimation?.cancel();
+      shimmerAnimation?.cancel();
+    };
   }, []);
 
   return (
