@@ -443,13 +443,7 @@ function Nav() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span className="relative block transition-transform duration-500 group-hover:-translate-y-full">
-              {l.label}
-            </span>
-            <span
-              aria-hidden="true"
-              className="absolute inset-x-0 top-full block text-center transition-transform duration-500 group-hover:-translate-y-full"
-            >
+            <span className="relative block transition-colors duration-300">
               {l.label}
             </span>
           </Link>
