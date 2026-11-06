@@ -56,7 +56,11 @@ export const submitInquiry = createServerFn({ method: "POST" })
     let emailed = false;
     const resendApiKey = process.env.RESEND_API_KEY;
     const contactEmail =
-      process.env.CONTACT_TO_EMAIL || "shubhamvaishnav640@gmail.com";
+      process.env.CONTACT_TO_EMAIL ||
+      process.env.CONTACT_EMAIL ||
+      "shubhamvaishnav640@gmail.com";
+    const fromEmail =
+      process.env.CONTACT_FROM_EMAIL || "Portfolio <onboarding@resend.dev>";
 
     if (resendApiKey) {
       try {
@@ -67,12 +71,12 @@ export const submitInquiry = createServerFn({ method: "POST" })
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Portfolio <onboarding@resend.dev>",
-          to: contactEmail,
+            from: fromEmail,
+            to: contactEmail,
             reply_to: email,
-          subject: `New portfolio inquiry from ${name}`,
+            subject: `New portfolio inquiry from ${name}`,
             text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-          html: `
+            html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
               <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">New Portfolio Inquiry</h2>
               <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
