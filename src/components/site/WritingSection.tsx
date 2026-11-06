@@ -130,25 +130,25 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       {/* Articles Grid */}
-      <div ref={gridRef} className="mt-14 grid gap-8 md:grid-cols-2">
+      <div ref={gridRef} className="mt-10 grid gap-6 sm:mt-14 sm:gap-8 md:grid-cols-2">
         {filteredArticles.map((art) => (
           <Tilt key={art.slug} className="w-full">
             <div
               onClick={() => setActiveArticle(art)}
-              className="glass group/card relative flex h-full cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-6 sm:p-8 transition-colors duration-300 hover:border-primary/60"
+              className="glass group/card relative flex h-full cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5 transition-colors duration-300 hover:border-primary/60 sm:p-8"
             >
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex min-w-0 items-start justify-between gap-3 text-xs text-muted-foreground">
                 <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
                   {art.category}
                 </span>
-                <span>
+                <span className="max-w-[55%] text-right leading-relaxed">
                   {art.readTime} · {art.date}
                 </span>
               </div>
 
               <div className="my-6">
-                <h3 className="font-display text-2xl font-bold leading-snug transition-colors duration-300 group-hover/card:text-primary md:text-3xl">
-                  <ScrambleText text={art.title} />
+                <h3 className="min-w-0 break-words font-display text-xl font-bold leading-snug transition-colors duration-300 group-hover/card:text-primary sm:text-2xl md:text-3xl">
+                  <ScrambleText text={art.title} className="block w-full break-words" />
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {art.excerpt}
