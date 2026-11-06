@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { usePortfolioData } from "@/lib/portfolio-store";
-import { loadInquiries, type Inquiry } from "@/lib/inquiries";
+import {
+  loadInquiries,
+  verifyAdminPassword,
+  type Inquiry,
+} from "@/lib/inquiries";
 import { ScrambleText } from "@/components/site/TextEffects";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,11 +28,7 @@ type Tab =
   | "backup";
 
 function getMasterPassword(): string {
-  if (typeof window !== "undefined") {
-    const custom = window.localStorage.getItem("portfolio_admin_custom_key");
-    if (custom && custom.trim()) return custom.trim();
-  }
-  return import.meta.env.VITE_ADMIN_PASSWORD || "shubham2026";
+  return "********";
 }
 
 function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
@@ -42,19 +42,22 @@ function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const keyParam = params.get("key");
-    if (keyParam && keyParam === getMasterPassword()) {
+    if (!keyParam) return;
+    verifyAdminPassword({ data: { password: keyParam } }).then((valid) => {
+      if (!valid) return;
       sessionStorage.setItem("admin_auth_token", "authenticated");
-      // Clean query parameter from URL
       window.history.replaceState({}, document.title, window.location.pathname);
       onUnlock();
-    }
+    });
   }, [onUnlock]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const correctPassword = getMasterPassword();
+    const valid = await verifyAdminPassword({
+      data: { password: passcode },
+    });
 
-    if (passcode.trim() === correctPassword) {
+    if (valid) {
       sessionStorage.setItem("admin_auth_token", "authenticated");
       onUnlock();
     } else {

@@ -9,6 +9,14 @@ export interface Inquiry {
   createdAt: string;
 }
 
+export const verifyAdminPassword = createServerFn({ method: "POST" })
+  .validator((data: { password: string }) => data)
+  .handler(async ({ data }) => {
+    const configured = process.env.ADMIN_PASSWORD?.trim();
+    const expected = configured || "shubham2026";
+    return data.password.trim() === expected;
+  });
+
 export const submitInquiry = createServerFn({ method: "POST" })
   .validator((data: { name: string; email: string; message: string }) => data)
   .handler(async ({ data }) => {
