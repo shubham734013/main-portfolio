@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import gsap from "gsap";
 import { Split, Tilt, useScrollFx } from "@/components/site/reveal";
@@ -167,15 +168,18 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       {/* Full Article Modal */}
-      {activeArticle && (
+      {activeArticle && typeof document !== "undefined" && createPortal(
         <div
           ref={modalRef}
           onClick={closeModal}
-          className="fixed inset-0 z-[85] flex items-center justify-center bg-background/85 p-4 backdrop-blur-2xl md:p-10"
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeArticle.title}
+          className="fixed inset-0 z-[85] flex items-center justify-center overflow-hidden bg-background/95 p-4 backdrop-blur-2xl md:p-10"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl"
+            className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl"
           >
             <div className="flex items-center justify-between border-b border-glass-border pb-4">
               <span className="text-xs uppercase tracking-widest text-primary font-medium">
@@ -213,7 +217,8 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
               </Magnetic>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
