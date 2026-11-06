@@ -172,7 +172,7 @@ export function CertificatesSection({
       <p className="text-xs uppercase tracking-[0.5em] text-primary">
         Credentials
       </p>
-      <h2 className="mt-4 max-w-full font-display text-[clamp(2.25rem,13vw,3rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(2.75rem,12vw,3.25rem)] sm:text-6xl md:text-7xl xl:text-9xl">
+      <h2 className="mt-4 max-w-full font-display text-[clamp(1.35rem,7vw,1.9rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(1.55rem,7.5vw,2.2rem)] sm:text-6xl md:text-7xl xl:text-9xl">
         <Split text="Certified" />{" "}
         <span className="text-liquid">curiosity</span>
       </h2>

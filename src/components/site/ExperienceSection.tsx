@@ -96,7 +96,7 @@ export function ExperienceSection({
           <p className="text-xs uppercase tracking-[0.5em] text-primary">
             Career & Competence
           </p>
-          <h2 className="mt-4 max-w-full font-display text-[clamp(1.5rem,8vw,2.25rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(1.75rem,9vw,2.6rem)] sm:text-6xl md:text-7xl xl:text-8xl">
+          <h2 className="mt-4 max-w-full font-display text-[clamp(1.35rem,7vw,1.9rem)] font-extrabold leading-[0.95] tracking-[-0.04em] min-[390px]:text-[clamp(1.55rem,7.5vw,2.2rem)] sm:text-6xl md:text-7xl xl:text-8xl">
             <Split text="Experience &" />{" "}
             <span className="text-liquid">craft</span>
           </h2>
