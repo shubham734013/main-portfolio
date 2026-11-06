@@ -507,9 +507,19 @@ function Footer() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      const compact = window.matchMedia("(max-width: 639px)").matches;
       gsap.fromTo(
         ".footer-name-fill",
-        {
+        compact ? {
+          clipPath: "inset(0 0 100% 0)",
+          y: 24,
+          scale: 0.86,
+          rotateX: 18,
+          filter: "blur(10px)",
+          opacity: 0,
+          letterSpacing: "0",
+          backgroundPosition: "0% 50%",
+        } : {
           clipPath: "inset(100% 0 0 0)",
           y: 90,
           scaleY: 1.3,
@@ -518,7 +528,18 @@ function Footer() {
           letterSpacing: "0.12em",
           backgroundPosition: "200% 50%",
         },
-        {
+        compact ? {
+          clipPath: "inset(0 0 0 0)",
+          y: 0,
+          scale: 1,
+          rotateX: 0,
+          filter: "blur(0px)",
+          opacity: 1,
+          letterSpacing: "-0.055em",
+          backgroundPosition: "200% 50%",
+          duration: 0.75,
+          ease: "back.out(1.35)",
+        } : {
           clipPath: "inset(0 0% 0 0)",
           y: 0,
           scaleY: 1,
@@ -539,12 +560,15 @@ function Footer() {
 
       gsap.fromTo(
         ".footer-name-outline",
-        { opacity: 0.18, y: 44, scaleX: 0.82 },
+        compact
+          ? { opacity: 0, scale: 0.92 }
+          : { opacity: 0.18, y: 44, scaleX: 0.82 },
         {
           opacity: 1,
           y: 0,
+          scale: 1,
           scaleX: 1,
-          duration: 1.6,
+          duration: compact ? 0.65 : 1.6,
           ease: "expo.out",
           overwrite: "auto",
           scrollTrigger: {
@@ -629,11 +653,11 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footer-name group relative mt-24 box-border w-full max-w-full cursor-default select-none overflow-hidden px-2 py-2 text-center font-display text-[clamp(2rem,12vw,6rem)] font-extrabold leading-[0.8] tracking-[-0.055em] sm:px-4">
+      <div className="footer-name group relative mt-20 box-border w-full max-w-full cursor-default select-none overflow-hidden px-0 py-3 text-center font-display text-[clamp(2rem,13vw,3.6rem)] font-extrabold leading-[0.8] tracking-[-0.055em] sm:mt-24 sm:px-4 sm:text-[clamp(4rem,12vw,6rem)]">
         <span className="footer-name-outline block w-full origin-bottom whitespace-nowrap text-transparent [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.25)]">
           SHUBHAM
         </span>
-        <span className="footer-name-fill absolute inset-0 block w-full whitespace-nowrap text-liquid transition-[filter,transform,letter-spacing] duration-700 ease-out group-hover:-translate-y-1 group-hover:brightness-125 group-hover:tracking-[-0.04em] motion-reduce:transition-none">
+        <span className="footer-name-fill absolute inset-0 block w-full origin-center whitespace-nowrap text-liquid transition-[opacity,transform,filter] duration-500 ease-out group-hover:scale-[1.025] group-hover:brightness-110 motion-reduce:transition-none sm:group-hover:scale-100">
           SHUBHAM
         </span>
       </div>
