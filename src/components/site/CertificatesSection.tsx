@@ -50,11 +50,11 @@ function CertFace({ c, big }: { c: Cert; big?: boolean }) {
           </div>
         )}
       </div>
-      <div className="flex shrink-0 items-end justify-between gap-3 border-t border-glass-border pt-3 text-xs text-muted-foreground sm:pt-4">
+      <div className="flex shrink-0 flex-col items-start gap-2 border-t border-glass-border pt-3 text-xs text-muted-foreground sm:flex-row sm:items-end sm:justify-between sm:gap-3 sm:pt-4">
         <span className="font-script text-3xl leading-none normal-case text-foreground sm:text-4xl">
           Shubham
         </span>
-        <span className="shrink-0 text-right font-mono text-[10px] sm:text-[11px]">
+        <span className="min-w-0 max-w-full break-words font-mono text-[9px] leading-relaxed sm:text-right sm:text-[11px]">
           {c.date} · {c.id}
         </span>
       </div>
