@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import gsap from "gsap";
 import { Split, Tilt } from "@/components/site/reveal";
@@ -69,7 +70,9 @@ export function CertificatesSection({
 }) {
   const { certificates } = usePortfolioData();
   const [open, setOpen] = useState<Cert | null>(null);
+  const isClosingRef = useRef(false);
   const modal = useRef<HTMLDivElement>(null);
+  const modalContent = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   // Staggered card entrance animation with clearProps
@@ -115,17 +118,19 @@ export function CertificatesSection({
           { opacity: 0 },
           { opacity: 1, duration: 0.3 },
         );
-        gsap.fromTo(
-          ".cert-big",
-          { scale: 0.96, y: 24 },
-          {
-            scale: 1,
-            y: 0,
-            duration: 0.6,
-            ease: "power3.out",
-            transformPerspective: 1000,
-          },
-        );
+        if (modalContent.current) {
+          gsap.fromTo(
+            modalContent.current,
+            { scale: 0.96, y: 24 },
+            {
+              scale: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power3.out",
+              transformPerspective: 1000,
+            },
+          );
+        }
       }
     } else {
       document.body.style.overflow = "";
@@ -146,12 +151,18 @@ export function CertificatesSection({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
-  const close = () =>
+  const close = () => {
+    if (isClosingRef.current || !modal.current) return;
+    isClosingRef.current = true;
     gsap.to(modal.current, {
       opacity: 0,
       duration: 0.3,
-      onComplete: () => setOpen(null),
+      onComplete: () => {
+        isClosingRef.current = false;
+        setOpen(null);
+      },
     });
+  };
 
   return (
     <div className={`px-6 pb-24 md:px-16 ${embedded ? "pt-24" : "pt-40"}`}>
@@ -221,30 +232,35 @@ export function CertificatesSection({
       </div>
 
       {/* Modal View for Big Certificate */}
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={open.title}
-          ref={modal}
-          onClick={close}
-          className="fixed inset-0 z-[85] flex items-center justify-center bg-background/85 p-4 backdrop-blur-2xl sm:p-6"
-        >
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="cert-big w-full max-w-3xl"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={open.title}
+            ref={modal}
+            onClick={close}
+            className="fixed inset-0 z-[85] flex h-dvh w-screen items-center justify-center overflow-hidden bg-background/85 p-4 backdrop-blur-2xl sm:p-6"
           >
-            <CertFace c={open} big />
-            <Button
-              variant="ghost"
-              onClick={close}
-              className="glass mx-auto mt-6 block h-auto rounded-full px-6 py-3 text-xs uppercase tracking-widest text-primary hover:border-primary"
+            <div
+              ref={modalContent}
+              data-lenis-prevent
+              className="cert-big w-full max-w-3xl max-h-[85dvh] overflow-y-auto overscroll-contain"
+              onClick={(e) => e.stopPropagation()}
             >
-              Close Credential
-            </Button>
-          </div>
-        </div>
-      )}
+              <CertFace c={open} big />
+              <Button
+                variant="ghost"
+                onClick={close}
+                className="glass mx-auto mt-6 block h-auto rounded-full px-6 py-3 text-xs uppercase tracking-widest text-primary hover:border-primary"
+              >
+                Close Credential
+              </Button>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useReducer, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { Split, Tilt, useScrollFx } from "@/components/site/reveal";
 import { Magnetic } from "@/components/site/Shell";
@@ -15,19 +15,65 @@ const socialIcons = {
   Email: Mail,
 };
 
+type InquiryFormValues = {
+  name: string;
+  email: string;
+  message: string;
+};
+
+type InquiryFormState =
+  | { status: "editing"; values: InquiryFormValues }
+  | { status: "sending"; values: InquiryFormValues }
+  | { status: "sent"; values: InquiryFormValues }
+  | { status: "error"; values: InquiryFormValues; message: string };
+
+type InquiryFormAction =
+  | { type: "change"; field: keyof InquiryFormValues; value: string }
+  | { type: "send" }
+  | { type: "sent" }
+  | { type: "failed"; message: string }
+  | { type: "reset" };
+
+const emptyInquiry: InquiryFormValues = { name: "", email: "", message: "" };
+
+function inquiryFormReducer(
+  state: InquiryFormState,
+  action: InquiryFormAction,
+): InquiryFormState {
+  switch (action.type) {
+    case "change":
+      if (state.status === "sending" || state.status === "sent") return state;
+      return {
+        status: "editing",
+        values: { ...state.values, [action.field]: action.value },
+      };
+    case "send":
+      return state.status === "sending"
+        ? state
+        : { status: "sending", values: state.values };
+    case "sent":
+      return { status: "sent", values: emptyInquiry };
+    case "failed":
+      return {
+        status: "error",
+        values: state.values,
+        message: action.message,
+      };
+    case "reset":
+      return { status: "editing", values: emptyInquiry };
+  }
+}
+
 export function ContactSection({ embedded = false }: { embedded?: boolean }) {
   const ref = useScrollFx();
   const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [time, setTime] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [formState, setFormState] = useState({
-    name: "",
-    email: "",
-    message: "",
+  const [formState, dispatchForm] = useReducer(inquiryFormReducer, {
+    status: "editing",
+    values: emptyInquiry,
   });
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -48,41 +94,55 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (formState.status !== "sent") return;
+    const timer = window.setTimeout(
+      () => dispatchForm({ type: "reset" }),
+      4000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [formState.status]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(contactDetails.email);
+    if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    copyTimerRef.current = setTimeout(() => {
+      setCopied(false);
+      copyTimerRef.current = null;
+    }, 2500);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formState.name.trim() ||
-      !formState.email.trim() ||
-      !formState.message.trim()
-    )
+    if (formState.status === "sending" || formState.status === "sent") return;
+    const values = formState.values;
+    if (!values.name.trim() || !values.email.trim() || !values.message.trim())
       return;
-    setSending(true);
-    setSubmitError("");
+    dispatchForm({ type: "send" });
 
     try {
       await submitInquiry({
         data: {
-          name: formState.name.trim(),
-          email: formState.email.trim(),
-          message: formState.message.trim(),
+          name: values.name.trim(),
+          email: values.email.trim(),
+          message: values.message.trim(),
         },
       });
 
-      setSubmitted(true);
-      setFormState({ name: "", email: "", message: "" });
-      window.setTimeout(() => setSubmitted(false), 4000);
+      dispatchForm({ type: "sent" });
     } catch {
-      setSubmitError(
-        "The message could not be sent. Please email me directly or try again.",
-      );
-    } finally {
-      setSending(false);
+      dispatchForm({
+        type: "failed",
+        message:
+          "The message could not be sent. Please email me directly or try again.",
+      });
     }
   };
 
@@ -239,7 +299,7 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                   Send an inquiry
                 </h3>
 
-                {submitted ? (
+                {formState.status === "sent" ? (
                   <div className="my-16 text-center">
                     <div className="font-display text-6xl text-primary animate-bounce">
                       ✦
@@ -260,10 +320,15 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                       <input
                         type="text"
                         required
-                        value={formState.name}
+                        value={formState.values.name}
                         onChange={(e) =>
-                          setFormState({ ...formState, name: e.target.value })
+                          dispatchForm({
+                            type: "change",
+                            field: "name",
+                            value: e.target.value,
+                          })
                         }
+                        disabled={formState.status === "sending"}
                         placeholder="e.g. Jane Doe"
                         className="glass mt-2 w-full rounded-2xl border border-glass-border px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none"
                       />
@@ -276,10 +341,15 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                       <input
                         type="email"
                         required
-                        value={formState.email}
+                        value={formState.values.email}
                         onChange={(e) =>
-                          setFormState({ ...formState, email: e.target.value })
+                          dispatchForm({
+                            type: "change",
+                            field: "email",
+                            value: e.target.value,
+                          })
                         }
+                        disabled={formState.status === "sending"}
                         placeholder="jane@example.com"
                         className="glass mt-2 w-full rounded-2xl border border-glass-border px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none"
                       />
@@ -292,13 +362,15 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                       <textarea
                         required
                         rows={4}
-                        value={formState.message}
+                        value={formState.values.message}
                         onChange={(e) =>
-                          setFormState({
-                            ...formState,
-                            message: e.target.value,
+                          dispatchForm({
+                            type: "change",
+                            field: "message",
+                            value: e.target.value,
                           })
                         }
+                        disabled={formState.status === "sending"}
                         placeholder="Tell me about your project, timeline, and goals..."
                         className="glass mt-2 w-full rounded-2xl border border-glass-border p-4 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none resize-none"
                       />
@@ -307,17 +379,19 @@ export function ContactSection({ embedded = false }: { embedded?: boolean }) {
                     <Magnetic>
                       <button
                         type="submit"
-                        disabled={sending}
+                        disabled={formState.status === "sending"}
                         className="glass group relative overflow-hidden rounded-full bg-primary px-8 py-4 font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition-all duration-300 hover:scale-105 active:scale-95"
                       >
                         <span className="relative z-10 flex items-center gap-2">
-                          {sending ? "Sending..." : "Send Message ↗"}
+                          {formState.status === "sending"
+                            ? "Sending..."
+                            : "Send Message ↗"}
                         </span>
                       </button>
                     </Magnetic>
-                    {submitError && (
+                    {formState.status === "error" && (
                       <p className="text-sm text-red-400" role="alert">
-                        {submitError}
+                        {formState.message}
                       </p>
                     )}
                   </form>

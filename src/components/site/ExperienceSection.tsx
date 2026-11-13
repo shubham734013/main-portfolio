@@ -21,7 +21,15 @@ export function ExperienceSection({
   const ref = useScrollFx();
   const [activeCategory, setActiveCategory] = useState(0);
   const [downloaded, setDownloaded] = useState(false);
+  const downloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return () => {
+      if (downloadTimerRef.current !== null)
+        clearTimeout(downloadTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -68,8 +76,13 @@ export function ExperienceSection({
     document.body.appendChild(link);
     link.click();
     link.remove();
+    if (downloadTimerRef.current !== null)
+      clearTimeout(downloadTimerRef.current);
     setDownloaded(true);
-    setTimeout(() => setDownloaded(false), 3000);
+    downloadTimerRef.current = setTimeout(() => {
+      setDownloaded(false);
+      downloadTimerRef.current = null;
+    }, 3000);
   };
 
   return (

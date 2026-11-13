@@ -387,7 +387,7 @@ const links = [
 
 function Nav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const [active, setActive] = useState("home");
+  const [active, setActive] = useState<(typeof links)[number]["hash"]>("home");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -523,15 +523,33 @@ function Footer() {
       revealed = true;
       revealAnimation = text.animate(
         [
-          { clipPath: "inset(100% 0 0 0)", transform: "translateY(28px)", filter: "blur(8px)", opacity: 0.15 },
-          { clipPath: "inset(0 0 0 0)", transform: "translateY(0)", filter: "blur(0px)", opacity: 1 },
+          {
+            clipPath: "inset(100% 0 0 0)",
+            transform: "translateY(28px)",
+            filter: "blur(8px)",
+            opacity: 0.15,
+          },
+          {
+            clipPath: "inset(0 0 0 0)",
+            transform: "translateY(0)",
+            filter: "blur(0px)",
+            opacity: 1,
+          },
         ],
         { duration: 1100, easing: "ease-in", fill: "forwards" },
       );
       revealAnimation.finished.then(() => {
         shimmerAnimation = text.animate(
-          [{ backgroundPosition: "200% 50%" }, { backgroundPosition: "-200% 50%" }],
-          { duration: 3200, easing: "ease-in-out", iterations: Infinity, direction: "alternate" },
+          [
+            { backgroundPosition: "200% 50%" },
+            { backgroundPosition: "-200% 50%" },
+          ],
+          {
+            duration: 3200,
+            easing: "ease-in-out",
+            iterations: Infinity,
+            direction: "alternate",
+          },
         );
       });
       observer.disconnect();
@@ -575,19 +593,28 @@ function Footer() {
               to="/contact"
               className="group glass flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-primary transition-[transform,color,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none sm:min-h-0 sm:justify-start sm:px-6"
             >
-              Contact Form <span className="ml-1 inline-block transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none">↗</span>
+              Contact Form{" "}
+              <span className="ml-1 inline-block transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none">
+                ↗
+              </span>
             </Link>
             <Link
               to="/writing"
               className="group glass flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-[transform,color,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary/60 hover:text-foreground hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none sm:min-h-0 sm:justify-start sm:px-6"
             >
-              Read Articles <span className="ml-1 inline-block transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none">↗</span>
+              Read Articles{" "}
+              <span className="ml-1 inline-block transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none">
+                ↗
+              </span>
             </Link>
             <Link
               to="/admin"
               className="group glass flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-[transform,color,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary hover:text-primary hover:shadow-[var(--shadow-glow)] active:scale-95 motion-reduce:transition-none min-[390px]:col-span-2 sm:min-h-0 sm:justify-start"
             >
-              Admin Studio <span className="ml-1 inline-block transition-transform duration-300 group-hover:rotate-90 motion-reduce:transition-none">⚙️</span>
+              Admin Studio{" "}
+              <span className="ml-1 inline-block transition-transform duration-300 group-hover:rotate-90 motion-reduce:transition-none">
+                ⚙️
+              </span>
             </Link>
           </div>
         </div>

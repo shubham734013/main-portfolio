@@ -13,6 +13,7 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
   const ref = useScrollFx();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
+  const isClosingRef = useRef(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -63,13 +64,19 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
   }, [activeArticle]);
 
   const closeModal = () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
     if (modalRef.current) {
       gsap.to(modalRef.current, {
         opacity: 0,
         duration: 0.25,
-        onComplete: () => setActiveArticle(null),
+        onComplete: () => {
+          isClosingRef.current = false;
+          setActiveArticle(null);
+        },
       });
     } else {
+      isClosingRef.current = false;
       setActiveArticle(null);
     }
   };
@@ -131,7 +138,10 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       {/* Articles Grid */}
-      <div ref={gridRef} className="mt-10 grid gap-6 sm:mt-14 sm:gap-8 md:grid-cols-2">
+      <div
+        ref={gridRef}
+        className="mt-10 grid gap-6 sm:mt-14 sm:gap-8 md:grid-cols-2"
+      >
         {filteredArticles.map((art) => (
           <Tilt key={art.slug} className="w-full">
             <div
@@ -149,7 +159,10 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
 
               <div className="my-6">
                 <h3 className="min-w-0 break-words font-display text-xl font-bold leading-snug transition-colors duration-300 group-hover/card:text-primary sm:text-2xl md:text-3xl">
-                  <ScrambleText text={art.title} className="block w-full break-words" />
+                  <ScrambleText
+                    text={art.title}
+                    className="block w-full break-words"
+                  />
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {art.excerpt}
@@ -168,59 +181,61 @@ export function WritingSection({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       {/* Full Article Modal */}
-      {activeArticle && typeof document !== "undefined" && createPortal(
-        <div
-          ref={modalRef}
-          onClick={closeModal}
-          role="dialog"
-          aria-modal="true"
-          aria-label={activeArticle.title}
-          className="fixed inset-0 z-[85] flex items-center justify-center overflow-hidden bg-background/95 p-4 backdrop-blur-2xl md:p-10"
-        >
+      {activeArticle &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            onClick={(e) => e.stopPropagation()}
-            data-lenis-prevent
-            className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl"
+            ref={modalRef}
+            onClick={closeModal}
+            role="dialog"
+            aria-modal="true"
+            aria-label={activeArticle.title}
+            className="fixed inset-0 z-[85] flex items-center justify-center overflow-hidden bg-background/95 p-4 backdrop-blur-2xl md:p-10"
           >
-            <div className="-top-5 z-20 -mx-5 flex items-center justify-between border-b border-glass-border bg-background/95 px-5 pb-4 pt-5 backdrop-blur-xl sticky sm:-top-8 sm:-mx-8 sm:px-8 sm:pt-6 md:-top-10 md:-mx-10 md:px-10 md:pt-8">
-              <span className="text-xs uppercase tracking-widest text-primary font-medium">
-                {activeArticle.category} · {activeArticle.readTime}
-              </span>
-              <button
-                onClick={closeModal}
-                className="glass flex h-9 w-9 items-center justify-center rounded-full text-sm text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Close article"
-              >
-                ✕
-              </button>
-            </div>
-
-            <h2 className="mt-6 font-display text-2xl sm:text-3xl md:text-4xl font-bold leading-tight text-foreground">
-              {activeArticle.title}
-            </h2>
-            <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
-              Published {activeArticle.date} by Shubham
-            </p>
-
-            <div className="mt-8 space-y-5 whitespace-pre-line text-sm sm:text-base leading-relaxed text-foreground/90">
-              {activeArticle.content}
-            </div>
-
-            <div className="mt-10 flex justify-end border-t border-glass-border pt-6">
-              <Magnetic>
-                <Button
-                  variant="ghost"
+            <div
+              onClick={(e) => e.stopPropagation()}
+              data-lenis-prevent
+              className="article-modal-box glass relative max-h-[85vh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl"
+            >
+              <div className="-top-5 z-20 -mx-5 flex items-center justify-between border-b border-glass-border bg-background/95 px-5 pb-4 pt-5 backdrop-blur-xl sticky sm:-top-8 sm:-mx-8 sm:px-8 sm:pt-6 md:-top-10 md:-mx-10 md:px-10 md:pt-8">
+                <span className="text-xs uppercase tracking-widest text-primary font-medium">
+                  {activeArticle.category} · {activeArticle.readTime}
+                </span>
+                <button
                   onClick={closeModal}
-                  className="glass rounded-full px-6 py-2.5 text-xs uppercase tracking-widest text-primary"
+                  className="glass flex h-9 w-9 items-center justify-center rounded-full text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="Close article"
                 >
-                  Close article
-                </Button>
-              </Magnetic>
+                  ✕
+                </button>
+              </div>
+
+              <h2 className="mt-6 font-display text-2xl sm:text-3xl md:text-4xl font-bold leading-tight text-foreground">
+                {activeArticle.title}
+              </h2>
+              <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
+                Published {activeArticle.date} by Shubham
+              </p>
+
+              <div className="mt-8 space-y-5 whitespace-pre-line text-sm sm:text-base leading-relaxed text-foreground/90">
+                {activeArticle.content}
+              </div>
+
+              <div className="mt-10 flex justify-end border-t border-glass-border pt-6">
+                <Magnetic>
+                  <Button
+                    variant="ghost"
+                    onClick={closeModal}
+                    className="glass rounded-full px-6 py-2.5 text-xs uppercase tracking-widest text-primary"
+                  >
+                    Close article
+                  </Button>
+                </Magnetic>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body,
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

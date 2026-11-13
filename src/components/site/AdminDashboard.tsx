@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { usePortfolioData } from "@/lib/portfolio-store";
 import {
@@ -31,39 +31,97 @@ function getMasterPassword(): string {
   return "********";
 }
 
+type InquiriesState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "loaded"; data: Inquiry[] }
+  | { status: "error"; message: string };
+
+type AdminLockState =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "denied"; message: string }
+  | { status: "error"; message: string };
+
 function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
   const [passcode, setPasscode] = useState("");
-  const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [lockState, setLockState] = useState<AdminLockState>({
+    status: "idle",
+  });
   const [showPassword, setShowPassword] = useState(false);
 
-  // Auto-login if ?key=... URL parameter matches master password
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const keyParam = params.get("key");
     if (!keyParam) return;
-    verifyAdminPassword({ data: { password: keyParam } }).then((valid) => {
-      if (!valid) return;
-      sessionStorage.setItem("admin_auth_token", "authenticated");
-      window.history.replaceState({}, document.title, window.location.pathname);
-      onUnlock();
-    });
+
+    let active = true;
+    setLockState({ status: "checking" });
+    verifyAdminPassword({ data: { password: keyParam } })
+      .then((valid) => {
+        if (!active) return;
+        if (!valid) {
+          setLockState({
+            status: "denied",
+            message: "This sign-in link is invalid or expired.",
+          });
+          return;
+        }
+        sessionStorage.setItem("admin_auth_token", "authenticated");
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname,
+        );
+        onUnlock();
+      })
+      .catch((error) => {
+        console.error("Admin sign-in link verification failed", error);
+        if (active) {
+          setLockState({
+            status: "error",
+            message: "Unable to verify the sign-in link. Try again.",
+          });
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [onUnlock]);
+
+  useEffect(() => {
+    if (lockState.status !== "denied" && lockState.status !== "error") return;
+    const timer = window.setTimeout(
+      () => setLockState({ status: "idle" }),
+      2500,
+    );
+    return () => window.clearTimeout(timer);
+  }, [lockState]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const valid = await verifyAdminPassword({
-      data: { password: passcode },
-    });
-
-    if (valid) {
+    if (lockState.status === "checking") return;
+    setLockState({ status: "checking" });
+    try {
+      const valid = await verifyAdminPassword({
+        data: { password: passcode },
+      });
+      if (!valid) {
+        setLockState({
+          status: "denied",
+          message: "Incorrect passcode. Access denied.",
+        });
+        return;
+      }
       sessionStorage.setItem("admin_auth_token", "authenticated");
       onUnlock();
-    } else {
-      setError(true);
-      setErrorMessage("Incorrect passcode. Access denied.");
-      setTimeout(() => setError(false), 2500);
+    } catch (error) {
+      console.error("Admin passcode verification failed", error);
+      setLockState({
+        status: "error",
+        message: "Unable to verify your passcode. Please try again.",
+      });
     }
   };
 
@@ -107,12 +165,15 @@ function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
                 value={passcode}
                 onChange={(e) => {
                   setPasscode(e.target.value);
-                  if (error) setError(false);
+                  if (lockState.status !== "checking") {
+                    setLockState({ status: "idle" });
+                  }
                 }}
                 placeholder="Enter admin key..."
                 autoFocus
+                disabled={lockState.status === "checking"}
                 className={`glass w-full rounded-xl border bg-background/60 py-3 pl-4 pr-11 font-mono text-sm tracking-widest text-foreground outline-none transition-all duration-300 placeholder:text-muted-foreground/40 placeholder:tracking-normal focus:ring-2 focus:ring-primary/40 ${
-                  error
+                  lockState.status === "denied"
                     ? "border-destructive/80 ring-2 ring-destructive/40"
                     : "border-glass-border focus:border-primary"
                 }`}
@@ -130,19 +191,25 @@ function AdminLockScreen({ onUnlock }: { onUnlock: () => void }) {
                 )}
               </button>
             </div>
-            {error && (
+            {(lockState.status === "denied" ||
+              lockState.status === "error") && (
               <p className="pt-1 text-xs font-medium text-destructive">
-                {errorMessage}
+                {lockState.message}
               </p>
             )}
           </div>
 
           <button
             type="submit"
+            disabled={lockState.status === "checking"}
             className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
           >
             <KeyRound className="h-4 w-4 transition-transform group-hover:rotate-12" />
-            <span>Unlock Admin Studio</span>
+            <span>
+              {lockState.status === "checking"
+                ? "Verifying..."
+                : "Unlock Admin Studio"}
+            </span>
           </button>
         </form>
 
@@ -190,31 +257,60 @@ export function AdminDashboard() {
   } = usePortfolioData();
 
   const [activeTab, setActiveTab] = useState<Tab>("certificates");
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [inquiriesLoading, setInquiriesLoading] = useState(false);
+  const [inquiriesState, setInquiriesState] = useState<InquiriesState>({
+    status: "idle",
+  });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyExportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [importText, setImportText] = useState("");
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [copiedExport, setCopiedExport] = useState(false);
+  const [exportModalState, setExportModalState] = useState<
+    "closed" | "open" | "copied"
+  >("closed");
   const [newKeyInput, setNewKeyInput] = useState("");
   const [activeMasterKey, setActiveMasterKey] = useState(getMasterPassword());
   const [copiedUrlKey, setCopiedUrlKey] = useState(false);
 
-  const showNotification = (msg: string) => {
+  const showNotification = useCallback((msg: string) => {
+    if (toastTimerRef.current !== null) clearTimeout(toastTimerRef.current);
     setStatusMessage(msg);
-    setTimeout(() => setStatusMessage(null), 3500);
-  };
+    toastTimerRef.current = setTimeout(() => {
+      setStatusMessage(null);
+      toastTimerRef.current = null;
+    }, 3500);
+  }, []);
+
+  // Clean up all timers on unmount to avoid state-after-unmount warnings
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current !== null) clearTimeout(toastTimerRef.current);
+      if (copyExportTimerRef.current !== null)
+        clearTimeout(copyExportTimerRef.current);
+      if (copyUrlTimerRef.current !== null)
+        clearTimeout(copyUrlTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated || activeTab !== "inquiries") return;
-    setInquiriesLoading(true);
+    let cancelled = false;
+    setInquiriesState({ status: "loading" });
     loadInquiries({})
-      .then(setInquiries)
+      .then((data) => {
+        if (!cancelled) setInquiriesState({ status: "loaded", data });
+      })
       .catch((error) => {
         console.error("Failed to load inquiries", error);
-        showNotification("Could not load inquiries.");
-      })
-      .finally(() => setInquiriesLoading(false));
+        if (!cancelled)
+          setInquiriesState({
+            status: "error",
+            message: "Could not load inquiries.",
+          });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [activeTab, isAuthenticated]);
 
   const handleUpdatePasscode = (e: React.FormEvent) => {
@@ -245,8 +341,13 @@ export function AdminDashboard() {
     if (typeof window !== "undefined") {
       const directUrl = `${window.location.origin}/admin?key=${encodeURIComponent(activeMasterKey)}`;
       navigator.clipboard.writeText(directUrl);
+      if (copyUrlTimerRef.current !== null)
+        clearTimeout(copyUrlTimerRef.current);
       setCopiedUrlKey(true);
-      setTimeout(() => setCopiedUrlKey(false), 2500);
+      copyUrlTimerRef.current = setTimeout(() => {
+        setCopiedUrlKey(false);
+        copyUrlTimerRef.current = null;
+      }, 2500);
       showNotification("✦ 1-Click secret admin link copied to clipboard!");
     }
   };
@@ -456,8 +557,21 @@ export function AdminDashboard() {
   const handleExportCopy = () => {
     const data = exportAllData();
     navigator.clipboard.writeText(data);
-    setCopiedExport(true);
-    setTimeout(() => setCopiedExport(false), 2500);
+    if (copyExportTimerRef.current !== null)
+      clearTimeout(copyExportTimerRef.current);
+    setExportModalState("copied");
+    copyExportTimerRef.current = setTimeout(() => {
+      setExportModalState((prev) => (prev === "copied" ? "open" : prev));
+      copyExportTimerRef.current = null;
+    }, 2500);
+  };
+
+  const closeExportModal = () => {
+    if (copyExportTimerRef.current !== null) {
+      clearTimeout(copyExportTimerRef.current);
+      copyExportTimerRef.current = null;
+    }
+    setExportModalState("closed");
   };
 
   const handleImportSubmit = (e: React.FormEvent) => {
@@ -503,7 +617,7 @@ export function AdminDashboard() {
           </Link>
           <Button
             variant="ghost"
-            onClick={() => setShowExportModal(true)}
+            onClick={() => setExportModalState("open")}
             className="glass rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-primary hover:border-primary"
           >
             Backup & Export
@@ -614,23 +728,34 @@ export function AdminDashboard() {
 
       {activeTab === "inquiries" && (
         <div className="mt-8 space-y-4">
-          {inquiriesLoading ? (
+          {inquiriesState.status === "loading" ||
+          inquiriesState.status === "idle" ? (
             <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
               Loading inquiries...
             </p>
-          ) : inquiries.length === 0 ? (
+          ) : inquiriesState.status === "error" ? (
+            <p className="glass rounded-2xl p-6 text-sm text-destructive">
+              {inquiriesState.message}
+            </p>
+          ) : inquiriesState.data.length === 0 ? (
             <p className="glass rounded-2xl p-6 text-sm text-muted-foreground">
               No inquiries received yet.
             </p>
           ) : (
-            inquiries.map((inquiry) => (
-              <article key={inquiry.id} className="glass rounded-2xl p-5 sm:p-6">
+            inquiriesState.data.map((inquiry) => (
+              <article
+                key={inquiry.id}
+                className="glass rounded-2xl p-5 sm:p-6"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="font-display text-xl font-bold text-foreground">
                       {inquiry.name}
                     </h3>
-                    <a href={`mailto:${inquiry.email}`} className="text-sm text-primary hover:underline">
+                    <a
+                      href={`mailto:${inquiry.email}`}
+                      className="text-sm text-primary hover:underline"
+                    >
                       {inquiry.email}
                     </a>
                   </div>
@@ -1666,7 +1791,7 @@ export function AdminDashboard() {
 
             <div className="mt-6 flex flex-wrap gap-4">
               <Button
-                onClick={() => setShowExportModal(true)}
+                onClick={() => setExportModalState("open")}
                 className="rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow)]"
               >
                 Export All Data (JSON) ↓
@@ -1723,9 +1848,9 @@ export function AdminDashboard() {
       )}
 
       {/* Export Modal */}
-      {showExportModal && (
+      {exportModalState !== "closed" && (
         <div
-          onClick={() => setShowExportModal(false)}
+          onClick={closeExportModal}
           className="fixed inset-0 z-[99] flex items-center justify-center bg-background/85 p-4 backdrop-blur-2xl"
         >
           <div
@@ -1737,7 +1862,7 @@ export function AdminDashboard() {
                 Exported Portfolio Data
               </h3>
               <button
-                onClick={() => setShowExportModal(false)}
+                onClick={closeExportModal}
                 className="glass flex h-8 w-8 items-center justify-center rounded-full text-xs text-muted-foreground hover:text-foreground"
               >
                 ✕
@@ -1756,7 +1881,7 @@ export function AdminDashboard() {
             <div className="mt-6 flex justify-end gap-3 border-t border-glass-border pt-4">
               <Button
                 variant="ghost"
-                onClick={() => setShowExportModal(false)}
+                onClick={closeExportModal}
                 className="glass rounded-full px-5 py-2 text-xs uppercase tracking-wider"
               >
                 Close
@@ -1765,7 +1890,9 @@ export function AdminDashboard() {
                 onClick={handleExportCopy}
                 className="rounded-full bg-primary px-6 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow)]"
               >
-                {copiedExport ? "✓ Copied to Clipboard!" : "Copy JSON Data"}
+                {exportModalState === "copied"
+                  ? "✓ Copied to Clipboard!"
+                  : "Copy JSON Data"}
               </Button>
             </div>
           </div>

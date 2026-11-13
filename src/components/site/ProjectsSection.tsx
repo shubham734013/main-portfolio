@@ -12,6 +12,7 @@ export function ProjectsSection({ embedded = false }: { embedded?: boolean }) {
   const { projects } = usePortfolioData();
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState("All");
+  const isTransitioningRef = useRef(false);
   const grid = useRef<HTMLDivElement>(null);
 
   const tags = ["All", "WebGL", "React", "AI", "Design System", "Mobile"];
@@ -52,15 +53,19 @@ export function ProjectsSection({ embedded = false }: { embedded?: boolean }) {
   }, [page, filter, embedded]);
 
   const go = (p: number) => {
-    if (p === page || p < 0 || p >= pages) return;
+    if (isTransitioningRef.current || p === page || p < 0 || p >= pages) return;
     if (!grid.current) return;
+    isTransitioningRef.current = true;
     gsap.to(grid.current.children, {
       y: -50,
       opacity: 0,
       duration: 0.3,
       stagger: 0.03,
       ease: "power2.in",
-      onComplete: () => setPage(p),
+      onComplete: () => {
+        setPage(p);
+        isTransitioningRef.current = false;
+      },
     });
   };
 
