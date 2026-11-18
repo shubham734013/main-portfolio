@@ -38,7 +38,13 @@ export function useScrollFx() {
           const fromX = i % 2 === 0 ? -40 : 40;
           gsap.fromTo(
             el,
-            { x: fromX, y: 40, opacity: 0, rotate: fromX / 20, clipPath: "inset(12% 8% 12% 8% round 24px)" },
+            {
+              x: fromX,
+              y: 40,
+              opacity: 0,
+              rotate: fromX / 20,
+              clipPath: "inset(12% 8% 12% 8% round 24px)",
+            },
             {
               x: 0,
               y: 0,
@@ -49,7 +55,11 @@ export function useScrollFx() {
               duration: 0.9,
               ease: "expo.out",
               clearProps: "clipPath",
-              scrollTrigger: { trigger: el, start: "top 94%", invalidateOnRefresh: true },
+              scrollTrigger: {
+                trigger: el,
+                start: "top 94%",
+                invalidateOnRefresh: true,
+              },
             },
           );
           return;

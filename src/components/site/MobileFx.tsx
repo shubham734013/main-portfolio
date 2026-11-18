@@ -17,7 +17,8 @@ export function MobileFx() {
       !window.matchMedia(TOUCH).matches ||
       !navigator.maxTouchPoints ||
       window.matchMedia(REDUCED).matches
-    ) return;
+    )
+      return;
 
     const progress = gsap.to(bar.current, {
       scaleX: 1,
@@ -25,8 +26,7 @@ export function MobileFx() {
       scrollTrigger: { start: 0, end: "max", scrub: 0.3 },
     });
 
-    const skewTargets = () =>
-      gsap.utils.toArray<HTMLElement>("main section");
+    const skewTargets = () => gsap.utils.toArray<HTMLElement>("main section");
     const skewTween = gsap.quickTo(skewTargets(), "skewY", {
       duration: 0.5,
       ease: "power3",
@@ -47,15 +47,27 @@ export function MobileFx() {
       ripple.style.left = `${e.clientX}px`;
       ripple.style.top = `${e.clientY}px`;
       document.body.appendChild(ripple);
-      ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+      ripple.addEventListener("animationend", () => ripple.remove(), {
+        once: true,
+      });
 
-      const element = (e.target as HTMLElement).closest<HTMLElement>(pressSelector);
-      if (element) gsap.to(element, { scale: 0.96, duration: 0.15, ease: "power2.out" });
+      const element = (e.target as HTMLElement).closest<HTMLElement>(
+        pressSelector,
+      );
+      if (element)
+        gsap.to(element, { scale: 0.96, duration: 0.15, ease: "power2.out" });
     };
     const onUp = (e: PointerEvent) => {
       if (e.pointerType !== "touch") return;
-      const element = (e.target as HTMLElement).closest<HTMLElement>(pressSelector);
-      if (element) gsap.to(element, { scale: 1, duration: 0.6, ease: "elastic.out(1,0.45)" });
+      const element = (e.target as HTMLElement).closest<HTMLElement>(
+        pressSelector,
+      );
+      if (element)
+        gsap.to(element, {
+          scale: 1,
+          duration: 0.6,
+          ease: "elastic.out(1,0.45)",
+        });
     };
 
     document.addEventListener("pointerdown", onDown, { passive: true });
@@ -73,5 +85,7 @@ export function MobileFx() {
     };
   }, []);
 
-  return <div ref={bar} aria-hidden="true" className="scroll-progress md:hidden" />;
+  return (
+    <div ref={bar} aria-hidden="true" className="scroll-progress md:hidden" />
+  );
 }

@@ -42,11 +42,10 @@ export const submitInquiry = createServerFn({ method: "POST" })
     let stored = false;
     let storageError: unknown;
     try {
-      await put(
-        `inquiries/${inquiry.id}.json`,
-        JSON.stringify(inquiry),
-        { access: "private", addRandomSuffix: false },
-      );
+      await put(`inquiries/${inquiry.id}.json`, JSON.stringify(inquiry), {
+        access: "private",
+        addRandomSuffix: false,
+      });
       stored = true;
     } catch (error) {
       storageError = error;

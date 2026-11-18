@@ -39,35 +39,38 @@
 
 :root {
   --radius: 1.25rem;
-  --background: oklch(0.12 0.025 250);
-  --foreground: oklch(0.97 0.01 220);
-  --card: oklch(0.18 0.03 250);
-  --card-foreground: oklch(0.97 0.01 220);
-  --popover: oklch(0.16 0.03 250);
-  --popover-foreground: oklch(0.97 0.01 220);
-  --primary: oklch(0.86 0.15 195);
-  --primary-foreground: oklch(0.14 0.03 250);
-  --secondary: oklch(0.22 0.03 250);
-  --secondary-foreground: oklch(0.97 0.01 220);
-  --muted: oklch(0.22 0.03 250);
-  --muted-foreground: oklch(0.7 0.03 230);
-  --accent: oklch(0.75 0.17 30);
-  --accent-foreground: oklch(0.14 0.03 250);
-  --destructive: oklch(0.65 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.86 0.15 195);
-  --glass: oklch(1 0 0 / 5%);
-  --glass-border: oklch(1 0 0 / 14%);
+
+  /* Cool Blues Professional Theme (#1B2631, #3F4E4F, #A5C8D6, #F0F4F8, #D9E4E0) */
+  --background: #1b2631;
+  --foreground: #f0f4f8;
+  --card: #202d38;
+  --card-foreground: #f0f4f8;
+  --popover: #1c2732;
+  --popover-foreground: #f0f4f8;
+  --primary: #a5c8d6;
+  --primary-rgb: 165, 200, 214;
+  --primary-foreground: #1b2631;
+  --secondary: #3f4e4f;
+  --secondary-foreground: #f0f4f8;
+  --muted: #28363d;
+  --muted-foreground: #d9e4e0;
+  --accent: #d9e4e0;
+  --accent-foreground: #1b2631;
+  --destructive: #e06c75;
+  --destructive-foreground: #f0f4f8;
+  --border: rgba(217, 228, 224, 0.14);
+  --input: rgba(217, 228, 224, 0.16);
+  --ring: #a5c8d6;
+  --glass: rgba(63, 78, 79, 0.24);
+  --glass-border: rgba(165, 200, 214, 0.2);
   --gradient-liquid: linear-gradient(
     120deg,
-    var(--primary),
-    oklch(0.8 0.16 160),
-    var(--accent)
+    #a5c8d6 0%,
+    #f0f4f8 42%,
+    #d9e4e0 75%,
+    #a5c8d6 100%
   );
-  --shadow-glow: 0 0 60px -10px
-    color-mix(in oklab, var(--primary) 55%, transparent);
+  --shadow-glow: 0 0 60px -10px rgba(165, 200, 214, 0.38);
 }
 
 @layer base {
@@ -127,7 +130,7 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: oklch(1 0 0 / 15%);
+  background: rgba(165, 200, 214, 0.22);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -151,20 +154,24 @@ html.lenis body {
 }
 
 @utility glass {
-  background: linear-gradient(135deg, oklch(1 0 0 / 9%), oklch(1 0 0 / 2%));
+  background: linear-gradient(
+    135deg,
+    rgba(63, 78, 79, 0.32) 0%,
+    rgba(27, 38, 49, 0.58) 100%
+  );
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
   box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 18%),
-    0 20px 60px -20px oklch(0 0 0 / 60%);
+    inset 0 1px 0 rgba(240, 244, 248, 0.18),
+    0 20px 60px -20px rgba(15, 23, 31, 0.7);
 }
 
 @media (max-width: 767px) {
   .glass {
     backdrop-filter: blur(8px) saturate(130%);
     box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 14%),
-      0 10px 30px -18px oklch(0 0 0 / 50%);
+      inset 0 1px 0 rgba(240, 244, 248, 0.14),
+      0 10px 30px -18px rgba(15, 23, 31, 0.5);
   }
 
   .blob,
@@ -183,7 +190,7 @@ html.lenis body {
 
 @utility text-outline {
   color: transparent;
-  -webkit-text-stroke: 1px oklch(1 0 0 / 30%);
+  -webkit-text-stroke: 1px rgba(217, 228, 224, 0.35);
 }
 
 @keyframes liquid-shift {
@@ -303,7 +310,8 @@ html.lenis body {
 .article-modal-box {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--primary) 65%, transparent) transparent;
+  scrollbar-color: color-mix(in oklab, var(--primary) 65%, transparent)
+    transparent;
 }
 
 .article-modal-box::-webkit-scrollbar {
@@ -352,7 +360,10 @@ html.lenis body {
   animation: tap-ripple 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes tap-ripple {
-  to { transform: scale(7); opacity: 0; }
+  to {
+    transform: scale(7);
+    opacity: 0;
+  }
 }
 @media (max-width: 767px) and (pointer: coarse) {
   .mobile-menu {
@@ -362,22 +373,54 @@ html.lenis body {
   .mobile-menu > * {
     animation: menu-item 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
-  .mobile-menu > *:nth-child(2) { animation-delay: 40ms; }
-  .mobile-menu > *:nth-child(3) { animation-delay: 80ms; }
-  .mobile-menu > *:nth-child(4) { animation-delay: 120ms; }
-  .mobile-menu > *:nth-child(5) { animation-delay: 160ms; }
-  .mobile-menu > *:nth-child(6) { animation-delay: 200ms; }
-  .mobile-menu > *:nth-child(7) { animation-delay: 240ms; }
-  .mobile-menu > *:nth-child(8) { animation-delay: 280ms; }
+  .mobile-menu > *:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .mobile-menu > *:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .mobile-menu > *:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .mobile-menu > *:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .mobile-menu > *:nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .mobile-menu > *:nth-child(7) {
+    animation-delay: 240ms;
+  }
+  .mobile-menu > *:nth-child(8) {
+    animation-delay: 280ms;
+  }
 }
 @keyframes menu-pop {
-  from { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(0.9); filter: blur(6px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); filter: blur(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px) scale(0.9);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 @keyframes menu-item {
-  from { opacity: 0; transform: translateY(14px) scale(0.92); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mobile-menu, .mobile-menu > *, .tap-ripple { animation: none !important; }
+  .mobile-menu,
+  .mobile-menu > *,
+  .tap-ripple {
+    animation: none !important;
+  }
 }

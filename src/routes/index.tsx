@@ -161,7 +161,8 @@ function CharacterFadeText({ text }: { text: string }) {
       duration: 0.25,
       ease: "power1.out",
       stagger: 0.015,
-      onComplete: () => gsap.set(characters, { clearProps: "transform,opacity,color" }),
+      onComplete: () =>
+        gsap.set(characters, { clearProps: "transform,opacity,color" }),
     });
   };
 
@@ -247,8 +248,12 @@ function Home() {
         </div>
 
         <h1 className="hero-name-mask relative w-full max-w-5xl whitespace-nowrap font-display text-[clamp(1.75rem,10vw,2.35rem)] font-extrabold leading-[0.88] tracking-[-0.055em] min-[390px]:text-[clamp(2rem,9.75vw,3rem)] sm:text-[clamp(3.25rem,9vw,6rem)] md:text-[clamp(5rem,9vw,7.5rem)]">
-          <span className="block origin-bottom whitespace-nowrap text-liquid">Shubham</span>
-          <span className="block origin-bottom whitespace-nowrap text-liquid">Vaishnav</span>
+          <span className="block origin-bottom whitespace-nowrap text-liquid">
+            Shubham
+          </span>
+          <span className="block origin-bottom whitespace-nowrap text-liquid">
+            Vaishnav
+          </span>
         </h1>
         <div className="hero-return-reveal hero-role-list mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary md:text-base">
           <span>Full-Stack Developer</span>

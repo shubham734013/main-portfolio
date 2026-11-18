@@ -145,7 +145,7 @@ function Loader({ onDone }: { onDone: () => void }) {
               y2="0%"
             >
               <stop offset="0%" stopColor="var(--primary)" />
-              <stop offset="50%" stopColor="oklch(0.85 0.16 160)" />
+              <stop offset="50%" stopColor="#d9e4e0" />
               <stop offset="100%" stopColor="var(--accent)" />
             </linearGradient>
             <linearGradient
@@ -155,9 +155,9 @@ function Loader({ onDone }: { onDone: () => void }) {
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="40%" stopColor="#94a3b8" />
-              <stop offset="100%" stopColor="#0f172a" />
+              <stop offset="0%" stopColor="#f0f4f8" />
+              <stop offset="40%" stopColor="#a5c8d6" />
+              <stop offset="100%" stopColor="#1b2631" />
             </linearGradient>
             <filter id="pen-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="6" result="blur" />
