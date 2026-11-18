@@ -122,7 +122,7 @@ function Loader({ onDone }: { onDone: () => void }) {
 
       <div className="sig-wrap relative flex flex-col items-center">
         <div className="relative h-32 w-[min(82vw,680px)] select-none sm:h-40 md:h-48">
-          <div className="absolute inset-0 flex items-center justify-center font-script text-[clamp(7rem,24vw,14rem)] leading-none text-transparent [-webkit-text-stroke:1px_oklch(86%_0.15_195_/_0.18)]">
+          <div className="absolute inset-0 flex items-center justify-center font-script text-[clamp(7rem,24vw,14rem)] leading-none text-transparent [-webkit-text-stroke:1px_rgba(252,241,209,0.2)]">
             Shubham
           </div>
           <div
@@ -144,9 +144,9 @@ function Loader({ onDone }: { onDone: () => void }) {
               x2="100%"
               y2="0%"
             >
-              <stop offset="0%" stopColor="var(--primary)" />
-              <stop offset="50%" stopColor="#d9e4e0" />
-              <stop offset="100%" stopColor="var(--accent)" />
+              <stop offset="0%" stopColor="#fcf1d1" />
+              <stop offset="50%" stopColor="#8ab3e6" />
+              <stop offset="100%" stopColor="#fcf1d1" />
             </linearGradient>
             <linearGradient
               id="nib-gradient"
@@ -155,9 +155,9 @@ function Loader({ onDone }: { onDone: () => void }) {
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" stopColor="#f0f4f8" />
-              <stop offset="40%" stopColor="#a5c8d6" />
-              <stop offset="100%" stopColor="#1b2631" />
+              <stop offset="0%" stopColor="#fcf1d1" />
+              <stop offset="40%" stopColor="#1c3670" />
+              <stop offset="100%" stopColor="#000133" />
             </linearGradient>
             <filter id="pen-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="6" result="blur" />
@@ -749,13 +749,13 @@ export function Shell({ children }: { children: ReactNode }) {
     <>
       {loading && <Loader onDone={() => setLoading(false)} />}
       <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
-        <div className="blob absolute -left-[10vw] top-[10vh] h-[45vw] w-[45vw] bg-primary/25 blur-[120px]" />
+        <div className="blob absolute -left-[10vw] top-[10vh] h-[45vw] w-[45vw] bg-[#1c3670]/30 blur-[130px]" />
         <div
-          className="blob absolute right-[-10vw] top-[40vh] h-[40vw] w-[40vw] bg-accent/20 blur-[120px]"
+          className="blob absolute right-[-10vw] top-[40vh] h-[40vw] w-[40vw] bg-[#051540]/75 blur-[130px]"
           style={{ animationDelay: "-6s" }}
         />
         <div
-          className="blob absolute bottom-[-10vh] left-[30vw] h-[35vw] w-[35vw] bg-primary/15 blur-[120px]"
+          className="blob absolute bottom-[-10vh] left-[30vw] h-[35vw] w-[35vw] bg-[#fcf1d1]/12 blur-[140px]"
           style={{ animationDelay: "-12s" }}
         />
       </div>

@@ -35,42 +35,54 @@
   --color-ring: var(--ring);
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
+  --color-midnight: var(--midnight);
+  --color-royal: var(--royal);
+  --color-sapphire: var(--sapphire);
+  --color-champagne: var(--champagne);
 }
 
 :root {
   --radius: 1.25rem;
 
-  /* Cool Blues Professional Theme (#1B2631, #3F4E4F, #A5C8D6, #F0F4F8, #D9E4E0) */
-  --background: #1b2631;
-  --foreground: #f0f4f8;
-  --card: #202d38;
-  --card-foreground: #f0f4f8;
-  --popover: #1c2732;
-  --popover-foreground: #f0f4f8;
-  --primary: #a5c8d6;
-  --primary-rgb: 165, 200, 214;
-  --primary-foreground: #1b2631;
-  --secondary: #3f4e4f;
-  --secondary-foreground: #f0f4f8;
-  --muted: #28363d;
-  --muted-foreground: #d9e4e0;
-  --accent: #d9e4e0;
-  --accent-foreground: #1b2631;
+  /* Nocturne Sapphire & Champagne Gold Professional Design System */
+  /* Direct from palette: #000133 | #051540 | #1C3670 | #FCF1D1 */
+  --midnight: #000133;
+  --royal: #051540;
+  --sapphire: #1c3670;
+  --champagne: #fcf1d1;
+  --champagne-rgb: 252, 241, 209;
+  --sapphire-rgb: 28, 54, 112;
+
+  --background: #000133;
+  --foreground: #fcf1d1;
+  --card: #051540;
+  --card-foreground: #fcf1d1;
+  --popover: #051540;
+  --popover-foreground: #fcf1d1;
+  --primary: #fcf1d1;
+  --primary-rgb: 252, 241, 209;
+  --primary-foreground: #000133;
+  --secondary: #051540;
+  --secondary-foreground: #fcf1d1;
+  --muted: #0b1a45;
+  --muted-foreground: #a6c0e2;
+  --accent: #1c3670;
+  --accent-foreground: #fcf1d1;
   --destructive: #e06c75;
-  --destructive-foreground: #f0f4f8;
-  --border: rgba(217, 228, 224, 0.14);
-  --input: rgba(217, 228, 224, 0.16);
-  --ring: #a5c8d6;
-  --glass: rgba(63, 78, 79, 0.24);
-  --glass-border: rgba(165, 200, 214, 0.2);
+  --destructive-foreground: #fcf1d1;
+  --border: rgba(28, 54, 112, 0.45);
+  --input: rgba(28, 54, 112, 0.5);
+  --ring: #fcf1d1;
+  --glass: rgba(5, 21, 64, 0.48);
+  --glass-border: rgba(28, 54, 112, 0.55);
   --gradient-liquid: linear-gradient(
     120deg,
-    #a5c8d6 0%,
-    #f0f4f8 42%,
-    #d9e4e0 75%,
-    #a5c8d6 100%
+    #fcf1d1 0%,
+    #8ab3e6 35%,
+    #fcf1d1 70%,
+    #1c3670 100%
   );
-  --shadow-glow: 0 0 60px -10px rgba(165, 200, 214, 0.38);
+  --shadow-glow: 0 0 60px -10px rgba(252, 241, 209, 0.28);
 }
 
 @layer base {
@@ -130,7 +142,7 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(165, 200, 214, 0.22);
+  background: rgba(28, 54, 112, 0.45);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -156,22 +168,22 @@ html.lenis body {
 @utility glass {
   background: linear-gradient(
     135deg,
-    rgba(63, 78, 79, 0.32) 0%,
-    rgba(27, 38, 49, 0.58) 100%
+    rgba(5, 21, 64, 0.58) 0%,
+    rgba(0, 1, 51, 0.78) 100%
   );
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(24px) saturate(160%);
   box-shadow:
-    inset 0 1px 0 rgba(240, 244, 248, 0.18),
-    0 20px 60px -20px rgba(15, 23, 31, 0.7);
+    inset 0 1px 0 rgba(252, 241, 209, 0.16),
+    0 20px 60px -20px rgba(0, 1, 35, 0.85);
 }
 
 @media (max-width: 767px) {
   .glass {
-    backdrop-filter: blur(8px) saturate(130%);
+    backdrop-filter: blur(10px) saturate(140%);
     box-shadow:
-      inset 0 1px 0 rgba(240, 244, 248, 0.14),
-      0 10px 30px -18px rgba(15, 23, 31, 0.5);
+      inset 0 1px 0 rgba(252, 241, 209, 0.12),
+      0 10px 30px -18px rgba(0, 1, 35, 0.7);
   }
 
   .blob,
@@ -190,7 +202,7 @@ html.lenis body {
 
 @utility text-outline {
   color: transparent;
-  -webkit-text-stroke: 1px rgba(217, 228, 224, 0.35);
+  -webkit-text-stroke: 1px rgba(252, 241, 209, 0.28);
 }
 
 @keyframes liquid-shift {

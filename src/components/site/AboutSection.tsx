@@ -128,10 +128,10 @@ export function AboutSection({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           <Tilt className="mx-auto aspect-[4/5] w-full max-w-[20rem] rounded-[1.75rem] sm:max-w-sm md:max-w-md lg:max-w-lg">
-            <div className="group/avatar relative h-full overflow-hidden rounded-[1.75rem] border border-glass-border bg-[linear-gradient(145deg,oklch(18%_0.025_225),oklch(9%_0.02_250))] shadow-[0_24px_80px_-32px_rgba(0,0,0,0.9)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,oklch(86%_0.15_195_/_0.18),transparent_28%),radial-gradient(circle_at_24%_78%,oklch(64%_0.18_285_/_0.16),transparent_38%)]" />
+            <div className="group/avatar relative h-full overflow-hidden rounded-[1.75rem] border border-glass-border bg-[linear-gradient(145deg,#051540,#000133)] shadow-[0_24px_80px_-32px_rgba(0,1,51,0.95)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(252,241,209,0.18),transparent_28%),radial-gradient(circle_at_24%_78%,rgba(28,54,112,0.35),transparent_38%)]" />
               <div className="absolute left-[12%] top-[9%] aspect-square w-[58%] rounded-full border border-primary/20 bg-primary/[0.08]" />
-              <div className="absolute bottom-[16%] right-[8%] aspect-square w-[46%] rounded-full bg-accent/10 blur-xl" />
+              <div className="absolute bottom-[16%] right-[8%] aspect-square w-[46%] rounded-full bg-[#1c3670]/25 blur-xl" />
               <video
                 ref={journeyVideoRef}
                 className="absolute inset-0 z-10 h-full w-full object-cover"
